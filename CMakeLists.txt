@@ -115,8 +115,15 @@ else()
     find_package(Git REQUIRED QUIET)
     message(STATUS "Cloning and updating submodules")
 
+    # Exclude SDL if we are not using it.
+    if(BUILD_SDL_TEST)
+        set(EXCLUDE_COMMAND --exclude external/SDL)
+    else()
+        set(EXCLUDE_COMMAND)
+    endif(BUILD_SDL_TEST)
+
     if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive ${EXCLUDE_COMMAND}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             RESULT_VARIABLE GIT_SUBMOD_RESULT)
 
@@ -125,9 +132,9 @@ else()
         endif()
 
         # Do not as emscripten
-        if(NOT BUILD_SDL_TEST OR NOT EMSCRIPTEN)
+        if(BUILD_SDL_TEST OR NOT EMSCRIPTEN)
             add_subdirectory(./external/SDL)
-        endif(NOT BUILD_SDL_TEST OR NOT EMSCRIPTEN)
+        endif(BUILD_SDL_TEST OR NOT EMSCRIPTEN)
 
         # Remove exclude from all, as this is needed for vorbis
         add_subdirectory(./external/ogg)
@@ -207,15 +214,15 @@ endif(WIN32)
 # #########################################
 
 # SDL2::SDL2main may or may not be available. It is e.g. required by Windows GUI applications
-if(TARGET SDL2::SDL2main)
+if(BUILD_SDL_TEST AND TARGET SDL2::SDL2main)
     # It has an implicit dependency on SDL2 functions, so it MUST be added before SDL2::SDL2 (or SDL2::SDL2-static)
     target_link_libraries(supergoonSound PRIVATE SDL2::SDL2main)
 endif()
 
 # If we are building SDL2, we whould link to it.  Emscripten builds do not build sdl2.
-if(TARGET SDL2::SDL2-static)
+if(BUILD_SDL_TEST AND TARGET SDL2::SDL2-static)
     target_link_libraries(supergoonSound PRIVATE SDL2::SDL2-static)
-endif(TARGET SDL2::SDL2-static)
+endif()
 
 if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
     # If we are building locally, we already have all the libraries.
