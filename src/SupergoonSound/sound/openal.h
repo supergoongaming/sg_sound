@@ -1,8 +1,8 @@
 #pragma once
-#include <vorbis/vorbisfile.h>
+// #include <vorbis/vorbisfile.h>
 #include <AL/al.h>
 #include <AL/alc.h>
-#include <AL/alext.h>
+// #include <AL/alext.h>
 
 typedef struct Sg_Loaded_Sfx
 {

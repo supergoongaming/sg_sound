@@ -80,7 +80,7 @@ set(BUILD_TESTING GOON_BUILD_TESTING)
 # Packages
 # #########################################
 # Most dev is done here, so to speed up builds don't rebuild all packages, must have them installed.
-# if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
+if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
     # 1. Look for a SDL2 package, 2. look for the SDL2 component and 3. fail if none can be found
     find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
 
@@ -104,32 +104,34 @@ set(BUILD_TESTING GOON_BUILD_TESTING)
         PATH_SUFFIXES .a
         REQUIRED)
 
-    # Build everything, useful for runners, and builds we don't care take a little longer.
-    # else()
-    # find_package(Git REQUIRED QUIET)
-    # message(STATUS "Cloning and updating submodules")
-    # if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-    # execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-    # WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    # RESULT_VARIABLE GIT_SUBMOD_RESULT)
+# Build everything, useful for runners, and builds we don't care take a little longer.
+else()
+    find_package(Git REQUIRED QUIET)
+    message(STATUS "Cloning and updating submodules")
 
-    # if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-    # message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-    # endif()
+    if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            RESULT_VARIABLE GIT_SUBMOD_RESULT)
 
-    # add_subdirectory(./external/SDL EXCLUDE_FROM_ALL)
-    # add_subdirectory(./external/SDL_image EXCLUDE_FROM_ALL)
-    # add_subdirectory(./external/Lua EXCLUDE_FROM_ALL)
+        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+            message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+        endif()
 
-    # target_link_libraries(SupergoonDash PRIVATE lua_static)
-    # else()
-    # message(STATUS "Could not init git for some reason")
-    # endif()
+        # Do not as emscripten
+        # add_subdirectory(./external/SDL )
+        # Remove exclude from all, as this is needed for vorbis
+        add_subdirectory(./external/ogg )
+        add_subdirectory(./external/vorbis )
 
-    # Mojoal
-    target_sources(supergoonSound PRIVATE external/mojoAL/mojoal.c)
-    set_source_files_properties(external/mojoAL/mojoal.c PROPERTIES COMPILE_FLAGS -w) # Hide warnings
-# endif(MACOS AND NOT GOON_FULL_MACOS_BUILD)
+    else()
+        message(STATUS "Could not init git for some reason")
+    endif()
+endif(MACOS AND NOT GOON_FULL_MACOS_BUILD)
+
+# Mojoal
+target_sources(supergoonSound PRIVATE external/mojoAL/mojoal.c)
+set_source_files_properties(external/mojoAL/mojoal.c PROPERTIES COMPILE_FLAGS -w) # Hide warnings
 
 # #########################################
 # Compile Definitions
@@ -169,7 +171,9 @@ if(CMAKE_DEBUG_VARIABLES)
 endif(CMAKE_DEBUG_VARIABLES)
 
 if(EMSCRIPTEN)
-    set_target_properties(supergoonSound PROPERTIES LINK_FLAGS ${LINK_FLAGS} "-O0 -g -s SAFE_HEAP=1 -s STACK_OVERFLOW_CHECK=1 --preload-file ${CMAKE_SOURCE_DIR}/assets@/assets")
+    set_target_properties(supergoonSound PROPERTIES LINK_FLAGS ${LINK_FLAGS} "-O0 -g -s SAFE_HEAP=1 -sUSE_SDL=2 -s STACK_OVERFLOW_CHECK=1 --preload-file ${CMAKE_SOURCE_DIR}/assets@/assets")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -sUSE_SDL=2 -s 'DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[\"$$autoResumeAudioContext\",\"$$dynCall\"]'")
+
 endif(EMSCRIPTEN)
 
 # #########################################
@@ -203,16 +207,26 @@ endif()
 target_link_libraries(supergoonSound
     PUBLIC
     PRIVATE
-    SDL2::SDL2-static
-    ${LIB_VORBISFILE}
-    ${LIB_VORBIS}
-    ${OGG_LIBRARIES}
+    # If emscripten, do not
+    # SDL2::SDL2-static
+    ogg
+    vorbis vorbisenc vorbisfile
+    # If building locally
+    # ${LIB_VORBISFILE}
+    # ${LIB_VORBIS}
+    # ${OGG_LIBRARIES}
 )
 
 target_include_directories(supergoonSound
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/
     ${CMAKE_CURRENT_SOURCE_DIR}/external/mojoAL
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/mojoAL
+    # Need both ogg targets, ogg cmakelists is total trash bro.
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/vorbis/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/ogg/include
+    ${CMAKE_BINARY_DIR}/external/ogg/include
+    # ${CMAKE_BINARY_DIR}/external/vorbis/include
 )
 
 # #########################################

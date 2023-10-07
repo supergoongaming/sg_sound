@@ -4,3 +4,6 @@
 [submodule "external/SDL"]
 	path = external/SDL
 	url = https://github.com/kjblanchard/SDL.git
+[submodule "external/ogg"]
+	path = external/ogg
+	url = git@github.com:xiph/ogg.git

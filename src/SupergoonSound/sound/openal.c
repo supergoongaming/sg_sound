@@ -5,7 +5,6 @@
 #include <vorbis/codec.h>
 
 #include <AL/al.h>
-#include <AL/alext.h>
 #include <SupergoonSound/sound/alhelpers.h>
 #include <SupergoonSound/sound/openal.h>
 
@@ -544,7 +543,9 @@ static int UpdatePlayer(StreamPlayer *player)
             return 0;
     }
     else if (state == AL_PAUSED)
+    {
         return 1;
+    }
 
     while (processed_buffers > 0)
     {
@@ -555,7 +556,7 @@ static int UpdatePlayer(StreamPlayer *player)
     if (state != AL_PLAYING && state != AL_PAUSED)
     {
 
-        printf("We are not playing OR paused, we are %d", state);
+        printf("We are not playing OR paused, we are %d\n", state);
 
         alSourcePlay(player->source);
         if (alGetError() != AL_NO_ERROR)

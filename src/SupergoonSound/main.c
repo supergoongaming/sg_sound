@@ -1,5 +1,9 @@
 #include <SupergoonSound/gnpch.h>
 #include <SupergoonSound/sound/sound.h>
+// EMSCRIPTEN
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 static bool shouldQuit = false;
 static SDL_Event event;
@@ -41,16 +45,16 @@ void loop_func()
         case SDL_KEYDOWN:
             if (event.key.keysym.sym == SDLK_q)
             {
-                shouldQuit = true; // Quit the loop if 'q' key is pressed
+                // shouldQuit = true; // Quit the loop if 'q' key is pressed
             }
             break;
         default:
             break;
         }
     }
-    UpdateSound();
     if (shouldQuit)
         return;
+    UpdateSound();
     SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
     SDL_RenderClear(renderer);
     SDL_RenderPresent(renderer);
@@ -63,18 +67,21 @@ int main()
         fprintf(stderr, "Could not Initialize SDL!\nError: %s", SDL_GetError());
         return 1;
     }
+
     CreateSdlWindow();
-    InitializeSound();
+    int result = InitializeSound();
+    printf("Result is %d\n", result);
     Bgm *mainBgm = LoadBgm("test.ogg", 20.397, 43.08);
-    PlayBgm(mainBgm, 1.0);
+    result = PlayBgm(mainBgm, 1.0);
+    printf("Result is %d\n", result);
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop(loop_func, 0, 1);
+#else
     while (!shouldQuit)
     {
-#ifdef __EMSCRIPTEN__
-        emscripten_set_main_loop(loop_func, 60, 1);
-#else
         loop_func();
         SDL_Delay(16);
-#endif
     }
+#endif
     SDL_Quit();
 }
