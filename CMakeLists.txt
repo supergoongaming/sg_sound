@@ -53,25 +53,33 @@ elseif(UNIX AND NOT APPLE)
 endif(EMSCRIPTEN)
 
 # #########################################
-# Initialize
-# #########################################
-message(STATUS "Initializing the project")
-add_executable(supergoonSound
-    ${FILES})
-
-# Using 11 instead of 99 for forward declaring typedef
-set_property(TARGET supergoonSound PROPERTY C_STANDARD 11)
-find_package(PkgConfig REQUIRED)
-
-# #########################################
 # Options
 # #########################################
 option(CMAKE_DEBUG_VARIABLES "Runs a debug on all variables for troubleshooting" OFF)
 option(GOON_BUILD_PCH "Uses a PCH file to try and speed up compilation" ON)
+option(BUILD_SDL_TEST "Builds a test suite instead of a library" OFF)
 
 # option(GOON_FULL_MACOS_BUILD "Full builds of all libraries, used for runners mostly, and passed in to override." OFF)
 option(GOON_BUILD_TESTING "Should we enable testing" OFF)
 set(BUILD_TESTING GOON_BUILD_TESTING)
+
+# #########################################
+# Initialize
+# #########################################
+message(STATUS "Initializing the project")
+
+if(BUILD_SDL_TEST)
+    add_executable(supergoonSound
+        ${FILES})
+else()
+    add_library(supergoonSound
+        STATIC
+        ${FILES})
+endif(BUILD_SDL_TEST)
+
+# Using 11 instead of 99 for forward declaring typedef
+set_property(TARGET supergoonSound PROPERTY C_STANDARD 11)
+find_package(PkgConfig REQUIRED)
 
 # #########################################
 # Packages
@@ -79,9 +87,10 @@ set(BUILD_TESTING GOON_BUILD_TESTING)
 # Most dev is done here, so to speed up builds don't rebuild all packages, must have them installed.
 if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
     # 1. Look for a SDL2 package, 2. look for the SDL2 component and 3. fail if none can be found
-    find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
-
-    find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
+    if(BUILD_SDL_TEST)
+        find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
+        find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
+    endif(BUILD_SDL_TEST)
 
     find_library(LIB_VORBIS
         REQUIRED
@@ -116,9 +125,9 @@ else()
         endif()
 
         # Do not as emscripten
-        if(NOT EMSCRIPTEN)
+        if(NOT BUILD_SDL_TEST OR NOT EMSCRIPTEN)
             add_subdirectory(./external/SDL)
-        endif(NOT EMSCRIPTEN)
+        endif(NOT BUILD_SDL_TEST OR NOT EMSCRIPTEN)
 
         # Remove exclude from all, as this is needed for vorbis
         add_subdirectory(./external/ogg)
@@ -170,11 +179,11 @@ if(CMAKE_DEBUG_VARIABLES)
     endforeach()
 endif(CMAKE_DEBUG_VARIABLES)
 
-if(EMSCRIPTEN)
+if(BUILD_SDL_TEST AND EMSCRIPTEN)
     # If we want to build SDL2, remove use_sdl
     set_target_properties(supergoonSound PROPERTIES LINK_FLAGS ${LINK_FLAGS} "-O0 -g -s SAFE_HEAP=1 -sUSE_SDL=2 -s STACK_OVERFLOW_CHECK=1 --preload-file ${CMAKE_SOURCE_DIR}/assets@/assets")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -sUSE_SDL=2 -s 'DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[\"$$autoResumeAudioContext\",\"$$dynCall\"]'")
-endif(EMSCRIPTEN)
+endif(BUILD_SDL_TEST AND EMSCRIPTEN)
 
 # #########################################
 # Compile Options
@@ -235,24 +244,24 @@ target_include_directories(supergoonSound
     ${CMAKE_CURRENT_SOURCE_DIR}/external/vorbis/include
     ${CMAKE_CURRENT_SOURCE_DIR}/external/ogg/include
     ${CMAKE_BINARY_DIR}/external/ogg/include
-
-    # ${CMAKE_BINARY_DIR}/external/vorbis/include
 )
 
 # #########################################
 # Install
 # #########################################
-set(FOLDERS_TO_COPY assets)
+if(BUILD_SDL_TEST)
+    set(FOLDERS_TO_COPY assets)
 
-if(MSVC OR CMAKE_GENERATOR STREQUAL "Xcode")
-    set(INSTALL_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>)
-else()
-    set(INSTALL_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-endif(MSVC OR CMAKE_GENERATOR STREQUAL "Xcode")
+    if(MSVC OR CMAKE_GENERATOR STREQUAL "Xcode")
+        set(INSTALL_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>)
+    else()
+        set(INSTALL_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    endif(MSVC OR CMAKE_GENERATOR STREQUAL "Xcode")
 
-install(DIRECTORY ${FOLDERS_TO_COPY}
-    DESTINATION ${INSTALL_DIR}
-    PATTERN "*.tsx" EXCLUDE
-    PATTERN "*.tmx" EXCLUDE
-    PATTERN "*.tiled-project" EXCLUDE
-)
+    install(DIRECTORY ${FOLDERS_TO_COPY}
+        DESTINATION ${INSTALL_DIR}
+        PATTERN "*.tsx" EXCLUDE
+        PATTERN "*.tmx" EXCLUDE
+        PATTERN "*.tiled-project" EXCLUDE
+    )
+endif(BUILD_SDL_TEST)
