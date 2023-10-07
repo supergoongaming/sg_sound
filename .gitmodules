@@ -7,3 +7,6 @@
 [submodule "external/--force"]
 	path = external/--force
 	url = git@github.com:kjblanchard/vorbis.git
+[submodule "external/vorbis"]
+	path = external/vorbis
+	url = git@github.com:kjblanchard/vorbis.git
