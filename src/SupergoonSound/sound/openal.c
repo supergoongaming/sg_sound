@@ -572,7 +572,9 @@ static int UpdatePlayer(StreamPlayer *player)
 static int UpdateSfxPlayer(SfxPlayer *player)
 {
     ALint processed_buffers;
-    int processed_buffer_nums[player->playing_buffers_vector->size];
+
+    // int processed_buffer_nums[player->playing_buffers_vector->size];
+    int processed_buffer_nums[MAX_SFX_SOUNDS];
     int buffs_processed = 0;
     for (size_t i = 0; i < player->playing_buffers_vector->size; ++i)
     {
