@@ -20,8 +20,6 @@ project(supergoonSound
 # File globbing
 # #########################################
 message(STATUS "Getting all files for cmake..")
-
-# file(GLOB_RECURSE FILES src/*.c* src/*.h* external/mojoAL/mojoal.c)
 file(GLOB_RECURSE FILES src/*.c* src/*.h*)
 
 # #########################################
@@ -32,7 +30,6 @@ message(STATUS "Changing the platform specific settings")
 if(EMSCRIPTEN)
     message(STATUS "Configuring Emscripten")
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
-
 elseif(APPLE)
     # MACOS
     if(NOT IOS)
@@ -119,10 +116,13 @@ else()
         endif()
 
         # Do not as emscripten
-        # add_subdirectory(./external/SDL )
+        if(NOT EMSCRIPTEN)
+            add_subdirectory(./external/SDL)
+        endif(NOT EMSCRIPTEN)
+
         # Remove exclude from all, as this is needed for vorbis
-        add_subdirectory(./external/ogg )
-        add_subdirectory(./external/vorbis )
+        add_subdirectory(./external/ogg)
+        add_subdirectory(./external/vorbis)
 
     else()
         message(STATUS "Could not init git for some reason")
@@ -171,9 +171,9 @@ if(CMAKE_DEBUG_VARIABLES)
 endif(CMAKE_DEBUG_VARIABLES)
 
 if(EMSCRIPTEN)
+    # If we want to build SDL2, remove use_sdl
     set_target_properties(supergoonSound PROPERTIES LINK_FLAGS ${LINK_FLAGS} "-O0 -g -s SAFE_HEAP=1 -sUSE_SDL=2 -s STACK_OVERFLOW_CHECK=1 --preload-file ${CMAKE_SOURCE_DIR}/assets@/assets")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -sUSE_SDL=2 -s 'DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[\"$$autoResumeAudioContext\",\"$$dynCall\"]'")
-
 endif(EMSCRIPTEN)
 
 # #########################################
@@ -203,29 +203,39 @@ if(TARGET SDL2::SDL2main)
     target_link_libraries(supergoonSound PRIVATE SDL2::SDL2main)
 endif()
 
-# Link to the actual SDL2 library. SDL2::SDL2 is the shared SDL library, SDL2::SDL2-static is the static SDL libarary.
-target_link_libraries(supergoonSound
-    PUBLIC
-    PRIVATE
-    # If emscripten, do not
-    # SDL2::SDL2-static
-    ogg
-    vorbis vorbisenc vorbisfile
-    # If building locally
-    # ${LIB_VORBISFILE}
-    # ${LIB_VORBIS}
-    # ${OGG_LIBRARIES}
-)
+# If we are building SDL2, we whould link to it.  Emscripten builds do not build sdl2.
+if(TARGET SDL2::SDL2-static)
+    target_link_libraries(supergoonSound PRIVATE SDL2::SDL2-static)
+endif(TARGET SDL2::SDL2-static)
 
+if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
+    # If we are building locally, we already have all the libraries.
+    target_link_libraries(supergoonSound
+        PRIVATE
+        ${LIB_VORBISFILE}
+        ${LIB_VORBIS}
+        ${OGG_LIBRARIES}
+    )
+else()
+    target_link_libraries(supergoonSound
+        PUBLIC
+        PRIVATE
+        ogg
+        vorbis vorbisenc vorbisfile
+    )
+endif(MACOS AND NOT GOON_FULL_MACOS_BUILD)
+
+# Link to the actual SDL2 library. SDL2::SDL2 is the shared SDL library, SDL2::SDL2-static is the static SDL libarary.
 target_include_directories(supergoonSound
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/
     ${CMAKE_CURRENT_SOURCE_DIR}/external/mojoAL
-    ${CMAKE_CURRENT_SOURCE_DIR}/external/mojoAL
+
     # Need both ogg targets, ogg cmakelists is total trash bro.
     ${CMAKE_CURRENT_SOURCE_DIR}/external/vorbis/include
     ${CMAKE_CURRENT_SOURCE_DIR}/external/ogg/include
     ${CMAKE_BINARY_DIR}/external/ogg/include
+
     # ${CMAKE_BINARY_DIR}/external/vorbis/include
 )
 
