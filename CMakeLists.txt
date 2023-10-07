@@ -182,7 +182,7 @@ endif(CMAKE_DEBUG_VARIABLES)
 if(BUILD_SDL_TEST AND EMSCRIPTEN)
     # If we want to build SDL2, remove use_sdl
     set_target_properties(supergoonSound PROPERTIES LINK_FLAGS ${LINK_FLAGS} "-O0 -g -s SAFE_HEAP=1 -sUSE_SDL=2 -s STACK_OVERFLOW_CHECK=1 --preload-file ${CMAKE_SOURCE_DIR}/assets@/assets")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -sUSE_SDL=2 -s 'DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[\"$$autoResumeAudioContext\",\"$$dynCall\"]'")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -sUSE_SDL=2 -s 'DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[\"$autoResumeAudioContext\",\"$dynCall\"]'")
 endif(BUILD_SDL_TEST AND EMSCRIPTEN)
 
 # #########################################
