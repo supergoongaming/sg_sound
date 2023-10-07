@@ -1,8 +1,8 @@
 #include <SupergoonSound/gnpch.h>
 
-#include <ogg/os_types.h>
+// #include <ogg/os_types.h>
 #include <vorbis/vorbisfile.h>
-#include <vorbis/codec.h>
+// #include <vorbis/codec.h>
 
 #include <AL/al.h>
 #include <SupergoonSound/sound/alhelpers.h>
