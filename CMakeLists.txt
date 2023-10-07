@@ -107,7 +107,7 @@ if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
     find_package(
         OGG
         NAMES ogg Ogg
-        PATH_SUFFIXES .a
+        PATH_SUFFIXES .a .dll
         REQUIRED)
 
 # Build everything, useful for runners, and builds we don't care take a little longer.
@@ -146,11 +146,11 @@ set_source_files_properties(external/mojoAL/mojoal.c PROPERTIES COMPILE_FLAGS -w
 # Compile Definitions
 # #########################################
 if(APPLE)
-    target_compile_definitions(supergoonSound PRIVATE -DGN_PLATFORM_MACOS)
+    target_compile_definitions(supergoonSound PRIVATE -DGN_PLATFORM_MACOS -DAL_LIBTYPE_STATIC)
 elseif(WIN32)
-    target_compile_definitions(supergoonSound PRIVATE -DGN_PLATFORM_WINDOWS)
+    target_compile_definitions(supergoonSound PRIVATE -DGN_PLATFORM_WINDOWS -DAL_LIBTYPE_STATIC)
 elseif(LINUX)
-    target_compile_definitions(supergoonSound PRIVATE -DGN_PLATFORM_LINUX)
+    target_compile_definitions(supergoonSound PRIVATE -DGN_PLATFORM_LINUX -DAL_LIBTYPE_STATIC)
 endif(APPLE)
 
 if(GOON_DEBUG_LUA)
