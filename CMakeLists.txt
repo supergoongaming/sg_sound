@@ -115,15 +115,9 @@ else()
     find_package(Git REQUIRED QUIET)
     message(STATUS "Cloning and updating submodules")
 
-    # Exclude SDL if we are not using it.
-    if(BUILD_SDL_TEST)
-        set(EXCLUDE_COMMAND --exclude external/SDL)
-    else()
-        set(EXCLUDE_COMMAND)
-    endif(BUILD_SDL_TEST)
 
     if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive ${EXCLUDE_COMMAND}
+        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             RESULT_VARIABLE GIT_SUBMOD_RESULT)
 
@@ -132,9 +126,9 @@ else()
         endif()
 
         # Do not as emscripten
-        if(BUILD_SDL_TEST OR NOT EMSCRIPTEN)
+        if(BUILD_SDL_TEST AND NOT EMSCRIPTEN)
             add_subdirectory(./external/SDL)
-        endif(BUILD_SDL_TEST OR NOT EMSCRIPTEN)
+        endif(BUILD_SDL_TEST AND NOT EMSCRIPTEN)
 
         # Remove exclude from all, as this is needed for vorbis
         add_subdirectory(./external/ogg)
@@ -251,6 +245,9 @@ target_include_directories(supergoonSound
     ${CMAKE_CURRENT_SOURCE_DIR}/external/vorbis/include
     ${CMAKE_CURRENT_SOURCE_DIR}/external/ogg/include
     ${CMAKE_BINARY_DIR}/external/ogg/include
+    # Needed when building as library
+    ${CMAKE_BINARY_DIR}/external/SDL/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/SDL/include
 )
 
 # #########################################
