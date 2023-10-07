@@ -3,10 +3,7 @@
 	url = https://github.com/kjblanchard/SDL.git
 [submodule "external/ogg"]
 	path = external/ogg
-	url = git@github.com:xiph/ogg.git
-[submodule "external/--force"]
-	path = external/--force
-	url = git@github.com:kjblanchard/vorbis.git
+	url = https://github.com/xiph/ogg.git
 [submodule "external/vorbis"]
 	path = external/vorbis
-	url = git@github.com:kjblanchard/vorbis.git
+	url = https://github.com/kjblanchard/vorbis.git
