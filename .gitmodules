@@ -4,3 +4,6 @@
 [submodule "external/ogg"]
 	path = external/ogg
 	url = git@github.com:xiph/ogg.git
+[submodule "external/--force"]
+	path = external/--force
+	url = git@github.com:kjblanchard/vorbis.git
