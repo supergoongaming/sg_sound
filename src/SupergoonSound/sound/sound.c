@@ -6,7 +6,7 @@
 /**
  * @brief The prefix that we should add to the config file so that we look in the right location.
  */
-static const char *sfx_prefix = "assets/";
+static const char *sfx_prefix = "";
 
 int InitializeSound()
 {
