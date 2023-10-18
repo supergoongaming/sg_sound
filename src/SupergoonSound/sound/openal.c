@@ -371,7 +371,7 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *lo
 static void GetLoopPoints(StreamPlayer *player, double *loop_begin, double *loop_end)
 {
     unsigned char not_at_beginning = 0;
-    if (loop_begin)
+    if (loop_begin && (*loop_begin > 0))
     {
         ov_time_seek(&player->vbfile, *loop_begin);
         player->loop_point_begin = ov_pcm_tell(&player->vbfile);
@@ -381,7 +381,7 @@ static void GetLoopPoints(StreamPlayer *player, double *loop_begin, double *loop
         player->loop_point_begin = ov_pcm_tell(&player->vbfile);
     // Loop end needs to be measured against our buffers loading, so they will be multiplied by channels and sizeof.
     // Due to us checking this on every step.
-    if (loop_end)
+    if (loop_end && (*loop_end) > 0)
     {
         ov_time_seek(&player->vbfile, *loop_end);
         player->loop_point_end = ov_pcm_tell(&player->vbfile) * player->vbinfo->channels * sizeof(short);
