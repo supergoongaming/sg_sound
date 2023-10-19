@@ -7,7 +7,7 @@
  */
 
 #pragma once
-#include "openal.h"
+#include <SupergoonSound/sound/openal.h>
 
 /**
  * @brief Structure to hold a bgm with it's loop points.

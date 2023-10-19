@@ -1,7 +1,7 @@
 #include <SupergoonSound/gnpch.h>
 #include <SupergoonSound/sound/alhelpers.h>
 #include <SupergoonSound/sound/openal.h>
-#include <SupergoonSound/sound/sound.h>
+#include <SupergoonSound/include/sound.h>
 
 /**
  * @brief The prefix that we should add to the config file so that we look in the right location.

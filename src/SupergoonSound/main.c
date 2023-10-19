@@ -1,5 +1,5 @@
 #include <SupergoonSound/gnpch.h>
-#include <SupergoonSound/sound/sound.h>
+#include <SupergoonSound/include/sound.h>
 // EMSCRIPTEN
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
