@@ -371,6 +371,11 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *lo
 static void GetLoopPoints(StreamPlayer *player, double *loop_begin, double *loop_end)
 {
     unsigned char not_at_beginning = 0;
+    if ((*loop_begin) >= (*loop_end))
+    {
+        fprintf(stderr, "SUPERGOON SOUND - Your loop end is greater or equal to loop begin, loop_end will be set to 0, please fix this in your call\nLoopBegin: %f LoopEnd %f\n", (*loop_begin), (*loop_end));
+        (*loop_end) = 0;
+    }
     if (loop_begin && (*loop_begin > 0))
     {
         ov_time_seek(&player->vbfile, *loop_begin);
