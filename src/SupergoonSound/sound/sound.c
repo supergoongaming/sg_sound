@@ -25,6 +25,10 @@ Bgm* LoadBgm(char *filename_suffix, float loop_begin, float loop_end)
     bgm->loop_end = loop_end;
     return bgm;
 }
+int PreLoadBgm(Bgm* bgm)
+{
+    PreBakeBgm(bgm->bgm_name, &bgm->loop_begin, &bgm->loop_end);
+}
 
 Sfx* LoadSfxHelper(char* filename)
 {

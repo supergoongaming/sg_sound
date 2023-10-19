@@ -1,7 +1,10 @@
 #include <SupergoonSound/gnpch.h>
+#include <vorbis/vorbisfile.h>
+
+#define BGM_NUM_BUFFERS 4
+#define BGM_BUFFER_SAMPLES 8192 // 8kb
 
 // #include <ogg/os_types.h>
-#include <vorbis/vorbisfile.h>
 // #include <vorbis/codec.h>
 
 #include <AL/al.h>
@@ -11,9 +14,7 @@
 #include "../base/stack.h"
 #include "../base/vector.h"
 
-#define BGM_NUM_BUFFERS 4
 #define MAX_SFX_SOUNDS 10
-#define BGM_BUFFER_SAMPLES 8192  // 8kb
 #define VORBIS_REQUEST_SIZE 4096 // Max size to request from vorbis to load.
 /**
  * @brief The BGM streaming player.  Probably only need one of these at any time
@@ -52,6 +53,18 @@ typedef enum BufferFillFlags
     Buff_Fill_MusicEnded,
     Buff_Fill_MusicHitLoopPoint
 } BufferFillFlags;
+/**
+ * @brief Gets the BGM source ready to play, and preloads the BGM buffers with data.
+ *
+ * @param player The BGM player to load.
+ * @param filename The filename to open and load.
+ * @param loop_begin The seconds where the loop should begin.
+ * @param loop_end The seconds where the loop should end.
+ * @param volume The volume that we should play, between 0 and 1.
+ *
+ * @return
+ */
+static int PreBakeBgmAl(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end);
 
 /**
  * @brief  The bgm player that we use, currently only one bgm player can exist.
@@ -73,18 +86,7 @@ static StreamPlayer *NewPlayer();
  * @return A ready to use sfx player.
  */
 static SfxPlayer *NewSfxPlayer();
-/**
- * @brief Gets the BGM source ready to play, and preloads the BGM buffers with data.
- *
- * @param player The BGM player to load.
- * @param filename The filename to open and load.
- * @param loop_begin The seconds where the loop should begin.
- * @param loop_end The seconds where the loop should end.
- * @param volume The volume that we should play, between 0 and 1.
- *
- * @return
- */
-static int PreBakeBgm(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end, float volume);
+// static int PreBakeBgmAl(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end, float volume);
 /**
  * @brief Preloads all of the buffers in a player
  *
@@ -288,7 +290,8 @@ int PlaySfxAl(Sg_Loaded_Sfx *sound_file, float volume)
 
 int PlayBgmAl(const char *filename, double *loop_begin, double *loop_end, float volume)
 {
-    PreBakeBgm(bgm_player, filename, loop_begin, loop_end, volume);
+    // PreBakeBgmAl(bgm_player, filename, loop_begin, loop_end);
+    alSourcef(bgm_player->source, AL_GAIN, volume);
     if (!StartPlayer(bgm_player))
     {
         ClosePlayerFile(bgm_player);
@@ -296,14 +299,18 @@ int PlayBgmAl(const char *filename, double *loop_begin, double *loop_end, float 
     }
     return 1;
 }
+int PreBakeBgm(const char *filename, double *loop_begin, double *loop_end)
+{
+    PreBakeBgmAl(bgm_player, filename, loop_begin, loop_end);
+}
 
-static int PreBakeBgm(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end, float volume)
+static int PreBakeBgmAl(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end)
 {
     if (!OpenPlayerFile(bgm_player, filename, loop_begin, loop_end))
         return 0;
     alSourceRewind(player->source);
     alSourcei(player->source, AL_BUFFER, 0);
-    alSourcef(player->source, AL_GAIN, volume);
+    // alSourcef(player->source, AL_GAIN, volume);
     PreBakeBuffers(player);
     return 1;
 }

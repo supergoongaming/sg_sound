@@ -30,6 +30,7 @@ typedef struct Sfx
 } Sfx;
 
 Bgm* LoadBgm(char *filename, float loop_begin, float loop_end);
+int PreLoadBgm(Bgm* bgm);
 Sfx* LoadSfxHelper(char* filename);
 /**
  * @brief Load the Sound backend, this must be called before any other functions are available.
