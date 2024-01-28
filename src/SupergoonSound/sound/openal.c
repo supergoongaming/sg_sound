@@ -16,6 +16,8 @@
 
 #define MAX_SFX_SOUNDS 10
 #define VORBIS_REQUEST_SIZE 4096 // Max size to request from vorbis to load.
+
+static int music_ended = 0;
 /**
  * @brief The BGM streaming player.  Probably only need one of these at any time
  *
@@ -32,7 +34,9 @@ typedef struct StreamPlayer
     short *membuf;
     ALenum format;
     unsigned short file_loaded;
+    uint8_t loops;
 } StreamPlayer;
+
 /**
  * @brief The Sfx player that is used to handle playing sfx
  */
@@ -258,6 +262,9 @@ static StreamPlayer *NewPlayer()
     // TODO can we actually load more here?  Seems like our buffers arent fully loading for some reason.
     size_t data_read_size = (size_t)(BGM_BUFFER_SAMPLES);
     player->membuf = malloc(data_read_size);
+
+    player->loops = 255;
+    fprintf(stderr, "New player\n");
     return player;
 }
 
@@ -297,6 +304,7 @@ int PlayBgmAl(const char *filename, double *loop_begin, double *loop_end, float 
         ClosePlayerFile(bgm_player);
         return 0;
     }
+    music_ended = 0;
     return 1;
 }
 int PreBakeBgm(const char *filename, double *loop_begin, double *loop_end)
@@ -565,7 +573,7 @@ static int UpdatePlayer(StreamPlayer *player)
         --processed_buffers;
     }
 
-    if (state != AL_PLAYING && state != AL_PAUSED)
+    if (state != AL_PLAYING && state != AL_PAUSED && !music_ended)
     {
 
         printf("We are not playing OR paused, we are %d\n", state);
@@ -633,7 +641,15 @@ static int HandleProcessedBuffer(StreamPlayer *player)
     }
     if (buf_flags == Buff_Fill_MusicEnded || buf_flags == Buff_Fill_MusicHitLoopPoint)
     {
-        RestartStream(player);
+        if (player->loops)
+        {
+            RestartStream(player);
+            player->loops = player->loops == 255 ? 255 : --player->loops;
+        }
+        else
+        {
+            music_ended = 1;
+        }
     }
     return 1;
 }
@@ -726,4 +742,11 @@ static void DeleteSfxPlayer(SfxPlayer *sfx_player)
     alDeleteBuffers(MAX_SFX_SOUNDS, sfx_player->buffers);
     DestroyStack(sfx_player->free_buffers_stack);
     DestroyVector(sfx_player->playing_buffers_vector);
+}
+
+void SetPlayerLoops(int loops)
+{
+    fprintf(stderr, "player loops is %d", bgm_player->loops);
+    bgm_player->loops = loops;
+    fprintf(stderr, "player loops is %d", bgm_player->loops);
 }
