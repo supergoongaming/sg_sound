@@ -18,7 +18,7 @@ typedef struct Sg_Loaded_Sfx
  *
  * @return 1 if successful, 0 if not.
  */
-int InitializeAl();
+int InitializeAl(void);
 /**
  * @brief Play a streaming BGM.
  *
@@ -28,22 +28,22 @@ int InitializeAl();
  *
  * @return 1 on Success, 0 on failure.
  */
-int PlayBgmAl(const char *filename, double *loop_begin, double *loop_end, float volume);
+int PlayBgmAl(float volume);
 
 int PreBakeBgm(const char *filename, double *loop_begin, double *loop_end);
-int StopBgmAl();
+int StopBgmAl(void);
 /**
  * @brief Pauses the playing bgm_player.
  *
  * @return 1 if successful, 0 if failed.
  */
-int PauseBgmAl();
+int PauseBgmAl(void);
 /**
  * @brief Unpauses the paused bgm_player
  *
  * @return 1 if successful, 0 if failed.
  */
-int UnpauseBgmAl();
+int UnpauseBgmAl(void);
 /**
  * @brief Loads a buffer full of the full sfx file, and returns it's information.
  *
@@ -64,10 +64,10 @@ int PlaySfxAl(Sg_Loaded_Sfx *sound_file, float volume);
 /**
  * @brief Updates the openal sound system.
  */
-void UpdateAl();
+void UpdateAl(void);
 /**
  * @brief Closes the AL sound system.
  *
  * @return 1 on Success, 0 on failure.
  */
-int CloseAl();
+int CloseAl(void);

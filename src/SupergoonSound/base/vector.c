@@ -6,7 +6,7 @@
 
 static int IncreaseVectorSize(vector *vector);
 
-vector *CreateVector()
+vector *CreateVector(void)
 {
     const int initial_size = 2;
     vector *vector = malloc(sizeof(*vector));

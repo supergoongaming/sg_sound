@@ -199,6 +199,7 @@ else()
         -Wpedantic
         -Wdeprecated
         -Wno-newline-eof
+        -Wno-sign-compare
     )
 endif(WIN32)
 

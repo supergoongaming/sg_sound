@@ -41,7 +41,7 @@
 
 /* InitAL opens a device and sets up a context using default attributes, making
  * the program ready to call OpenAL functions. */
-int InitAL()
+int InitAL(void)
 {
     const ALCchar *name;
     ALCdevice *device;

@@ -83,13 +83,13 @@ static SfxPlayer *sfx_player;
  *
  * @return A initialized bgmplayer
  */
-static StreamPlayer *NewPlayer();
+static StreamPlayer *NewPlayer(void);
 /**
  * @brief Constructor for a SFX player
  *
  * @return A ready to use sfx player.
  */
-static SfxPlayer *NewSfxPlayer();
+static SfxPlayer *NewSfxPlayer(void);
 // static int PreBakeBgmAl(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end, float volume);
 /**
  * @brief Preloads all of the buffers in a player
@@ -179,7 +179,7 @@ static int StopBgm(StreamPlayer *player);
  *
  * @return 1 0n successful, 0 on failure.
  */
-static int PauseBgm(StreamPlayer *player);
+static int PauseBgm(void);
 /**
  * @brief Checks to see if any playing sfx buffers are finished, and then reloads them into the free queue if so.
  *
@@ -204,7 +204,7 @@ static int RestartStream(StreamPlayer *player);
  *
  * @return A Sg_Loaded_Sfx struct with the loaded file and info for playing later.
  */
-static Sg_Loaded_Sfx *LoadSfxFile(SfxPlayer *player, const char *filename);
+static Sg_Loaded_Sfx *LoadSfxFile(const char *filename);
 /**
  * @brief Plays a Sound effect from an already loaded sound file.
  *
@@ -229,7 +229,7 @@ static void DeleteSfxPlayer(SfxPlayer *player);
  */
 static void UnqueueSfxBuffer(SfxPlayer *player, ALint source_num);
 
-int InitializeAl()
+int InitializeAl(void)
 {
     if (InitAL() != 0)
         return 0;
@@ -238,7 +238,7 @@ int InitializeAl()
     return 1;
 }
 
-static StreamPlayer *NewPlayer()
+static StreamPlayer *NewPlayer(void)
 {
     StreamPlayer *player;
     player = calloc(1, sizeof(*player));
@@ -268,7 +268,7 @@ static StreamPlayer *NewPlayer()
     return player;
 }
 
-static SfxPlayer *NewSfxPlayer()
+static SfxPlayer *NewSfxPlayer(void)
 {
     SfxPlayer *sfx_player;
     sfx_player = calloc(1, sizeof(*sfx_player));
@@ -295,9 +295,8 @@ int PlaySfxAl(Sg_Loaded_Sfx *sound_file, float volume)
     return 1;
 }
 
-int PlayBgmAl(const char *filename, double *loop_begin, double *loop_end, float volume)
+int PlayBgmAl(float volume)
 {
-    // PreBakeBgmAl(bgm_player, filename, loop_begin, loop_end);
     alSourcef(bgm_player->source, AL_GAIN, volume);
     if (!StartPlayer(bgm_player))
     {
@@ -309,7 +308,7 @@ int PlayBgmAl(const char *filename, double *loop_begin, double *loop_end, float 
 }
 int PreBakeBgm(const char *filename, double *loop_begin, double *loop_end)
 {
-    PreBakeBgmAl(bgm_player, filename, loop_begin, loop_end);
+    return PreBakeBgmAl(bgm_player, filename, loop_begin, loop_end);
 }
 
 static int PreBakeBgmAl(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end)
@@ -413,7 +412,7 @@ static void GetLoopPoints(StreamPlayer *player, double *loop_begin, double *loop
         ov_raw_seek(&player->vbfile, 0);
 }
 
-int StopBgmAl()
+int StopBgmAl(void)
 {
     return StopBgm(bgm_player);
 }
@@ -431,12 +430,12 @@ static int StopBgm(StreamPlayer *player)
     return 1;
 }
 
-int PauseBgmAl()
+int PauseBgmAl(void)
 {
-    return PauseBgm(bgm_player);
+    return PauseBgm();
 }
 
-static int PauseBgm(StreamPlayer *player)
+static int PauseBgm(void)
 {
     ALint state;
     alGetSourcei(bgm_player->source, AL_SOURCE_STATE, &state);
@@ -446,7 +445,7 @@ static int PauseBgm(StreamPlayer *player)
     return 1;
 }
 
-int UnpauseBgmAl()
+int UnpauseBgmAl(void)
 {
     ALint state;
     alGetSourcei(bgm_player->source, AL_SOURCE_STATE, &state);
@@ -459,10 +458,10 @@ int UnpauseBgmAl()
 Sg_Loaded_Sfx *LoadSfxFileAl(const char *filename)
 {
 
-    return LoadSfxFile(sfx_player, filename);
+    return LoadSfxFile(filename);
 }
 
-static Sg_Loaded_Sfx *LoadSfxFile(SfxPlayer *player, const char *filename)
+static Sg_Loaded_Sfx *LoadSfxFile(const char *filename)
 {
     // TODO Close a sfx_player
     vorbis_info *vbinfo;
@@ -538,7 +537,7 @@ static int PlaySfxFile(SfxPlayer *player, Sg_Loaded_Sfx *sfx_file, float volume)
     return 1;
 }
 
-void UpdateAl()
+void UpdateAl(void)
 {
     UpdatePlayer(bgm_player);
     UpdateSfxPlayer(sfx_player);
@@ -706,7 +705,7 @@ static int RestartStream(StreamPlayer *player)
     return 0;
 }
 
-int CloseAl()
+int CloseAl(void)
 {
     DeletePlayer(bgm_player);
     DeleteSfxPlayer(sfx_player);

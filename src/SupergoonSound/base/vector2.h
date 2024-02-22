@@ -38,7 +38,7 @@ Vector2 CreateVector2XY(float xy);
  *
  * @return A zero vector2
  */
-Vector2 ZeroVector2();
+Vector2 ZeroVector2(void);
 /**
  * @brief Adds two vector2s together
  *

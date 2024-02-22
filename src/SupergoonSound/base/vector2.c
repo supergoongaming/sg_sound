@@ -13,7 +13,7 @@ Vector2 CreateVector2XY(float xy)
     return CreateVector2(xy, xy);
 }
 
-Vector2 ZeroVector2()
+Vector2 ZeroVector2(void)
 {
     return CreateVector2(0, 0);
 }

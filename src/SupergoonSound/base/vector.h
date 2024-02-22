@@ -14,7 +14,7 @@ typedef struct vector
     int size;
 } vector;
 
-vector *CreateVector();
+vector *CreateVector(void);
 void DestroyVector(vector *vector);
 void VectorPushBack(vector *vector, int value);
 unsigned char VectorRemoveItem(vector *vector, int value);

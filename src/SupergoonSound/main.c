@@ -9,7 +9,7 @@ static bool shouldQuit = false;
 static SDL_Event event;
 static SDL_Renderer *renderer;
 
-static int CreateSdlWindow()
+static int CreateSdlWindow(void)
 {
     const char *windowName = "SoundTesting";
     int width = 640;
@@ -33,7 +33,7 @@ static int CreateSdlWindow()
     return 0;
 }
 
-void loop_func()
+void loop_func(void)
 {
     while (SDL_PollEvent(&event))
     {
@@ -60,7 +60,7 @@ void loop_func()
     SDL_RenderPresent(renderer);
 }
 
-int main()
+int main(void)
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0)
     {
@@ -71,8 +71,8 @@ int main()
     CreateSdlWindow();
     int result = InitializeSound();
     printf("Result is %d\n", result);
-    Bgm *mainBgm = LoadBgm("test.ogg", 20.397, 43.08);
-    result = PlayBgm(mainBgm, 1.0);
+    LoadBgm("test.ogg", 20.397, 43.08);
+    result = PlayBgm(1.0);
     printf("Result is %d\n", result);
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(loop_func, 0, 1);
