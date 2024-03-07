@@ -411,12 +411,13 @@ static void GetLoopPoints(StreamPlayer *player, double *loop_begin, double *loop
     {
         int64_t sample_offset = (int64_t)(*loop_end * player->vbinfo.sample_rate);
         // ov_time_seek(&player->vbfile, *loop_end);
-        player->loop_point_end = sample_offset * player->vbinfo.channels * sizeof(short);
+        // player->loop_point_end = sample_offset * player->vbinfo.channels * sizeof(short);
+        player->loop_point_end = sample_offset * player->vbinfo.channels;
         // not_at_beginning = 1;
     }
     else
         // player->loop_point_end = ov_pcm_total(&player->vbfile, -1) * player->vbinfo->channels * sizeof(short);
-        player->loop_point_end = stb_vorbis_stream_length_in_samples(player->vbfile);
+        player->loop_point_end = stb_vorbis_stream_length_in_samples(player->vbfile) * player->vbinfo.channels;
     // if (not_at_beginning)
     //     ov_raw_seek(&player->vbfile, 0);
 }
@@ -690,7 +691,8 @@ static long LoadBufferData(StreamPlayer *player, BufferFillFlags *buff_flags)
         }
         // Actually read from the file.Notice we offset our memory location(membuf) by the amount of bytes read so that we keep loading more.
         // int current_pass_bytes_read = ov_read(&player->vbfile, (char *)player->membuf + total_buffer_bytes_read, request_size, 0, sizeof(short), 1, 0);
-        int num_samples = stb_vorbis_get_samples_short_interleaved(player->vbfile, 1, (short *)((char *)player->membuf + total_buffer_bytes_read), request_size / sizeof(short));
+        int num_samples = stb_vorbis_get_samples_short_interleaved(player->vbfile, player->vbinfo.channels, player->membuf, request_size);
+        // int current_pass_bytes_read = num_samples * sizeof(short);
         int current_pass_bytes_read = num_samples * sizeof(short);
         // int current_pass_bytes_read = ov_read(&player->vbfile, (char *)player->membuf + total_buffer_bytes_read, request_size, 0, sizeof(short), 1, 0);
         // If we have read 0 bytes, we are at the end of the song.
@@ -713,8 +715,17 @@ static long LoadBufferData(StreamPlayer *player, BufferFillFlags *buff_flags)
 static int RestartStream(StreamPlayer *player)
 {
     // ov_pcm_seek_lap(&player->vbfile, player->loop_point_begin);
+    puts("Restarting!");
+    stb_vorbis_seek(player->vbfile, player->loop_point_begin);
+    // stb_vorbis_seek(player->vbfile, 0);
+    // int num_samples = stb_vorbis_get_samples_short_interleaved(player->vbfile, player->vbinfo.channels, player->membuf, request_size);
+    // int current_pass_bytes_read = num_samples * sizeof(short);
+    // player->total_bytes_read_this_loop = current_pass_bytes_read;
+
     // player->total_bytes_read_this_loop = ov_pcm_tell(&player->vbfile) * player->vbinfo->channels * sizeof(short);
-    // return 0;
+    player->total_bytes_read_this_loop = stb_vorbis_get_sample_offset(player->vbfile) * player->vbinfo.channels;
+    // player->total_bytes_read_this_loop = 0;
+    return 0;
 }
 
 int CloseAl(void)

@@ -55,7 +55,7 @@ endif(EMSCRIPTEN)
 # #########################################
 # Options
 # #########################################
-option(CMAKE_DEBUG_VARIABLES "Runs a debug on all variables for troubleshooting" OFF)
+option(CMAKE_DEBUG_VARIABLES "Runs a debug on all variables for troubleshooting" ON)
 option(GOON_BUILD_PCH "Uses a PCH file to try and speed up compilation" ON)
 option(BUILD_SDL_TEST "Builds a test suite instead of a library" OFF)
 
@@ -88,54 +88,36 @@ find_package(PkgConfig REQUIRED)
 if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
     # 1. Look for a SDL2 package, 2. look for the SDL2 component and 3. fail if none can be found
     if(BUILD_SDL_TEST)
-        find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
-        find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
     endif(BUILD_SDL_TEST)
 
-    find_library(LIB_VORBIS
-        REQUIRED
-        PATH_SUFFIXES .a
-        NAMES libvorbis vorbis vorbis.a vorbis.dll libvorbis.a
-        HINTS /usr/local/lib /c/cmake/lib)
-
-    find_library(LIB_VORBISFILE
-        REQUIRED
-        PATH_SUFFIXES .a
-        NAMES libvorbisfile vorbisfile vorbisfile.a vorbisfile.dll
-        HINTS /usr/local/lib)
-
-    find_package(
-        OGG
-        NAMES ogg Ogg
-        PATH_SUFFIXES .a .dll
-        REQUIRED)
 
 # Build everything, useful for runners, and builds we don't care take a little longer.
 else()
-    find_package(Git REQUIRED QUIET)
+    # find_package(Git REQUIRED QUIET)
     message(STATUS "Cloning and updating submodules")
 
-    if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            RESULT_VARIABLE GIT_SUBMOD_RESULT)
+    # if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+    #     execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+    #         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    #         RESULT_VARIABLE GIT_SUBMOD_RESULT)
 
-        if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-        endif()
+    #     if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+    #         message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+    #     endif()
 
-        # Do not as emscripten
-        if(BUILD_SDL_TEST AND NOT EMSCRIPTEN)
-            add_subdirectory(./external/SDL)
-        endif(BUILD_SDL_TEST AND NOT EMSCRIPTEN)
+    #     # Do not as emscripten
+    #     if(BUILD_SDL_TEST AND NOT EMSCRIPTEN)
+    #         add_subdirectory(./external/SDL)
+        # endif(BUILD_SDL_TEST AND NOT EMSCRIPTEN)
+
 
         # Remove exclude from all, as this is needed for vorbis
-        add_subdirectory(./external/ogg)
-        add_subdirectory(./external/vorbis)
+        # add_subdirectory(./external/ogg)
+        # add_subdirectory(./external/vorbis)
 
-    else()
-        message(STATUS "Could not init git for some reason")
-    endif()
+    # else()
+        # message(STATUS "Could not init git for some reason")
+    # endif()
 endif(MACOS AND NOT GOON_FULL_MACOS_BUILD)
 
 # Mojoal
@@ -214,24 +196,29 @@ if(BUILD_SDL_TEST AND TARGET SDL2::SDL2main)
 endif()
 
 # If we are building SDL2, we whould link to it.  Emscripten builds do not build sdl2.
+# if(BUILD_SDL_TEST AND TARGET SDL2::SDL2-static)
 if(BUILD_SDL_TEST AND TARGET SDL2::SDL2-static)
     target_link_libraries(supergoonSound PRIVATE SDL2::SDL2-static)
 endif()
+
+target_link_libraries(supergoonSound PUBLIC SDL2::SDL2-static)
 
 if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
     # If we are building locally, we already have all the libraries.
     target_link_libraries(supergoonSound
         PRIVATE
-        ${LIB_VORBISFILE}
-        ${LIB_VORBIS}
-        ${OGG_LIBRARIES}
+
+        # ${LIB_VORBISFILE}
+        # ${LIB_VORBIS}
+        # ${OGG_LIBRARIES}
     )
 else()
     target_link_libraries(supergoonSound
         PUBLIC
         PRIVATE
-        ogg
-        vorbis vorbisenc vorbisfile
+
+        # ogg
+        # vorbis vorbisenc vorbisfile
     )
 endif(MACOS AND NOT GOON_FULL_MACOS_BUILD)
 
@@ -242,9 +229,9 @@ target_include_directories(supergoonSound
     ${CMAKE_CURRENT_SOURCE_DIR}/external/mojoAL
 
     # Need both ogg targets, ogg cmakelists is total trash bro.
-    ${CMAKE_CURRENT_SOURCE_DIR}/external/vorbis/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/external/ogg/include
-    ${CMAKE_BINARY_DIR}/external/ogg/include
+    # ${CMAKE_CURRENT_SOURCE_DIR}/external/vorbis/include
+    # ${CMAKE_CURRENT_SOURCE_DIR}/external/ogg/include
+    # ${CMAKE_BINARY_DIR}/external/ogg/include
     # Needed when building as library
     ${CMAKE_BINARY_DIR}/external/SDL/include
     ${CMAKE_CURRENT_SOURCE_DIR}/external/SDL/include
