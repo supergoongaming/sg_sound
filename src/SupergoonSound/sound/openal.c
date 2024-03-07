@@ -23,7 +23,7 @@
 #include <SupergoonSound/base/vector.h>
 #define BGM_NUM_BUFFERS 4
 #define MAX_SFX_SOUNDS 10
-#define BGM_BUFFER_SAMPLES 8192  // 8kb
+#define BGM_BUFFER_SAMPLES 8192 // 8kb
 
 static int music_ended = 0;
 /**
@@ -468,47 +468,56 @@ static Sg_Loaded_Sfx *LoadSfxFile(const char *filename)
 {
     // TODO Close a sfx_player
     // vorbis_info *vbinfo;
-    // OggVorbis_File vbfile;
-    // Sg_Loaded_Sfx *loaded_sfx;
-    // loaded_sfx = calloc(1, sizeof(*loaded_sfx));
+    stb_vorbis_info vbinfo;
+    stb_vorbis *vbfile;
+    Sg_Loaded_Sfx *loaded_sfx;
+    loaded_sfx = calloc(1, sizeof(*loaded_sfx));
 
+    int result;
     // int result = ov_fopen(filename, &vbfile);
-    // if (result != 0)
-    // {
-    //     fprintf(stderr, "Could not open audio in %s: %d\n", filename, result);
-    //     return 0;
-    // }
+    vbfile = stb_vorbis_open_filename(filename, &result, NULL);
+    if (vbfile == NULL)
+    {
+        fprintf(stderr, "Could not open audio in %s: %d\n", filename, result);
+        return 0;
+    }
     // vbinfo = ov_info(&vbfile, -1);
-    // if (vbinfo->channels == 1)
-    // {
-    //     loaded_sfx->format = AL_FORMAT_MONO16;
-    // }
-    // else
-    // {
-    //     loaded_sfx->format = AL_FORMAT_STEREO16;
-    // }
-    // if (!loaded_sfx->format)
-    // {
-    //     fprintf(stderr, "Unsupported channel count: %d\n", vbinfo->channels);
-    //     ov_clear(&vbfile);
-    //     return 0;
-    // }
-    // loaded_sfx->sample_rate = vbinfo->rate;
+    vbinfo = stb_vorbis_get_info(vbfile);
+    if (vbinfo.channels == 1)
+    {
+        loaded_sfx->format = AL_FORMAT_MONO16;
+    }
+    else
+    {
+        loaded_sfx->format = AL_FORMAT_STEREO16;
+    }
+    if (!loaded_sfx->format)
+    {
+        fprintf(stderr, "Unsupported channel count: %d\n", vbinfo.channels);
+        stb_vorbis_close(vbfile);
+        // ov_clear(&vbfile);
+        return 0;
+    }
+    loaded_sfx->sample_rate = vbinfo.sample_rate;
 
-    // // Get the size of the file in pcm.
-    // loaded_sfx->size = ov_pcm_total(&vbfile, -1) * vbinfo->channels * sizeof(short);
-    // loaded_sfx->sound_data = malloc(loaded_sfx->size);
-    // int total_buffer_bytes_read = 0;
-    // int fully_loaded = 0;
-    // while (!fully_loaded)
-    // {
-    //     int bytes_read = ov_read(&vbfile, (char *)loaded_sfx->sound_data + total_buffer_bytes_read, VORBIS_REQUEST_SIZE, 0, sizeof(short), 1, 0);
-    //     total_buffer_bytes_read += bytes_read;
-    //     if (bytes_read == 0)
-    //         fully_loaded = 1;
-    // }
+    // Get the size of the file in pcm.
+    // loaded_sfx->size = ov_pcm_total(&vbfile, -1) * vbinfo.channels * sizeof(short);
+    loaded_sfx->size = stb_vorbis_stream_length_in_samples(vbfile) * vbinfo.channels * sizeof(short);
+    loaded_sfx->sound_data = malloc(loaded_sfx->size);
+    int total_buffer_bytes_read = 0;
+    int fully_loaded = 0;
+    while (!fully_loaded)
+    {
+        int num_samples = stb_vorbis_get_samples_short_interleaved(vbfile, vbinfo.channels, (short *)((char *)loaded_sfx->sound_data + total_buffer_bytes_read), BGM_BUFFER_SAMPLES / sizeof(short));
+        // Convert samples to bytes as this is how we track different things
+        int current_pass_bytes_read = num_samples * sizeof(short) * vbinfo.channels;
+        total_buffer_bytes_read += current_pass_bytes_read;
+        if (total_buffer_bytes_read == 0)
+            fully_loaded = 1;
+    }
     // ov_clear(&vbfile);
-    // return loaded_sfx;
+    stb_vorbis_close(vbfile);
+    return loaded_sfx;
 }
 
 int CloseSfxFileAl(Sg_Loaded_Sfx *loaded_sfx)
@@ -595,7 +604,6 @@ static int UpdateSfxPlayer(SfxPlayer *player)
 {
     ALint processed_buffers;
 
-    // int processed_buffer_nums[player->playing_buffers_vector->size];
     int processed_buffer_nums[MAX_SFX_SOUNDS];
     int buffs_processed = 0;
     for (size_t i = 0; i < player->playing_buffers_vector->size; ++i)
