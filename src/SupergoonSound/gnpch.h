@@ -17,5 +17,3 @@
 #include <time.h>
 #include <stdbool.h>
 #include <assert.h>
-// External libs that we link to with large headers.
-#include <SDL2/SDL.h>
