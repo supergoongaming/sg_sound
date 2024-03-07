@@ -1,21 +1,29 @@
+/**
+ * @file openal.c
+ * @author Kevin Blanchard (kevin@supergoon.com)
+ * @brief Openal implementation using stb_vorbis
+ * @version 0.1
+ * @date 2024-03-07
+ *
+ * @copyright Copyright (c) 2024
+ *
+ *
+ * Notes:
+ * Sample - The smallest form of measurement of something in audio
+ * SampleSize - In our case, we are using shorts, so you need to multiply sample * sizeof(short)
+ * Channels - how many speakers you are loading for, needs to load data for both.
+ * Bytes - SampleSize * channels
+ */
 #include <SupergoonSound/gnpch.h>
-#include <SupergoonSound/sound/stb_vorbis.c>
-// #include <vorbis/vorbisfile.h>
-
-#define BGM_NUM_BUFFERS 4
-#define MAX_SFX_SOUNDS 10
-#define VORBIS_REQUEST_SIZE 4096 // Max size to request from vorbis to load.
-#define BGM_BUFFER_SAMPLES 8192  // 8kb
-
-// #include <ogg/os_types.h>
-// #include <vorbis/codec.h>
-
 #include <AL/al.h>
+#include <SupergoonSound/sound/stb_vorbis.c>
 #include <SupergoonSound/sound/alhelpers.h>
 #include <SupergoonSound/sound/openal.h>
-
-#include "../base/stack.h"
-#include "../base/vector.h"
+#include <SupergoonSound/base/stack.h>
+#include <SupergoonSound/base/vector.h>
+#define BGM_NUM_BUFFERS 4
+#define MAX_SFX_SOUNDS 10
+#define BGM_BUFFER_SAMPLES 8192  // 8kb
 
 static int music_ended = 0;
 /**
@@ -259,12 +267,9 @@ static StreamPlayer *NewPlayer(void)
     alSourcei(player->source, AL_ROLLOFF_FACTOR, 0);
     result = alGetError();
     assert(result == AL_NO_ERROR && "Could not set source rolloff");
-    // TODO can we actually load more here?  Seems like our buffers arent fully loading for some reason.
     size_t data_read_size = (size_t)(BGM_BUFFER_SAMPLES);
     player->membuf = malloc(data_read_size);
-
     player->loops = 255;
-    fprintf(stderr, "New player\n");
     return player;
 }
 
@@ -306,6 +311,7 @@ int PlayBgmAl(float volume)
     music_ended = 0;
     return 1;
 }
+
 int PreBakeBgm(const char *filename, double *loop_begin, double *loop_end)
 {
     return PreBakeBgmAl(bgm_player, filename, loop_begin, loop_end);
@@ -317,7 +323,6 @@ static int PreBakeBgmAl(StreamPlayer *player, const char *filename, double *loop
         return 0;
     alSourceRewind(player->source);
     alSourcei(player->source, AL_BUFFER, 0);
-    // alSourcef(player->source, AL_GAIN, volume);
     PreBakeBuffers(player);
     return 1;
 }
@@ -329,14 +334,15 @@ static int PreBakeBuffers(StreamPlayer *player)
     for (i = 0; i < BGM_NUM_BUFFERS; i++)
     {
         long bytes_read = LoadBufferData(player, &buf_flags);
-        alBufferData(player->buffers[i], player->format, player->membuf, (ALsizei)bytes_read,
-                     player->vbinfo.sample_rate);
+        alBufferData(player->buffers[i], player->format, player->membuf, (ALsizei)bytes_read, player->vbinfo.sample_rate);
     }
+
     if (alGetError() != AL_NO_ERROR)
     {
         fprintf(stderr, "Error buffering for playback\n");
         return 0;
     }
+
     alSourceQueueBuffers(player->source, i, player->buffers);
     return 1;
 }
@@ -356,7 +362,6 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *lo
 {
     if (player->file_loaded)
         ClosePlayerFile(player);
-    // int result = ov_fopen(filename, &player->vbfile);
     int result;
     player->vbfile = stb_vorbis_open_filename(filename, &result, NULL);
     if (player->vbfile == NULL != 0)
@@ -364,8 +369,8 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *lo
         fprintf(stderr, "Could not open audio in %s: %d\n", filename, result);
         return 0;
     }
+
     player->file_loaded = 1;
-    // player->vbinfo = ov_info(&player->vbfile, -1);
     player->vbinfo = stb_vorbis_get_info(player->vbfile);
     if (player->vbinfo.channels == 1)
     {
@@ -378,7 +383,6 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *lo
     if (!player->format)
     {
         fprintf(stderr, "Unsupported channel count: %d\n", player->vbinfo.channels);
-        // ov_clear(&player->vbfile);
         stb_vorbis_close(player->vbfile);
         return 0;
     }
@@ -388,7 +392,6 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *lo
 
 static void GetLoopPoints(StreamPlayer *player, double *loop_begin, double *loop_end)
 {
-    // unsigned char not_at_beginning = 0;
     if ((*loop_begin) >= (*loop_end))
     {
         fprintf(stderr, "SUPERGOON SOUND - Your loop end is greater or equal to loop begin, loop_end will be set to 0, please fix this in your call\nLoopBegin: %f LoopEnd %f\n", (*loop_begin), (*loop_end));
@@ -396,29 +399,20 @@ static void GetLoopPoints(StreamPlayer *player, double *loop_begin, double *loop
     }
     if (loop_begin && (*loop_begin > 0))
     {
-        // ov_time_seek(&player->vbfile, *loop_begin);
-        // player->loop_point_begin = ov_pcm_tell(&player->vbfile);
         player->loop_point_begin = (int64_t)(*loop_begin * player->vbinfo.sample_rate);
-        // not_at_beginning = 1;
     }
     else
-        // player->loop_point_begin = ov_pcm_tell(&player->vbfile);
         player->loop_point_begin = 0;
+
     // Loop end needs to be measured against our buffers loading, so they will be multiplied by channels and sizeof.
     // Due to us checking this on every step.
     if (loop_end && (*loop_end) > 0)
     {
         int64_t sample_offset = (int64_t)(*loop_end * player->vbinfo.sample_rate);
-        // ov_time_seek(&player->vbfile, *loop_end);
-        // player->loop_point_end = sample_offset * player->vbinfo.channels * sizeof(short);
         player->loop_point_end = sample_offset * player->vbinfo.channels * sizeof(short);
-        // not_at_beginning = 1;
     }
     else
-        // player->loop_point_end = ov_pcm_total(&player->vbfile, -1) * player->vbinfo->channels * sizeof(short);
         player->loop_point_end = stb_vorbis_stream_length_in_samples(player->vbfile) * player->vbinfo.channels;
-    // if (not_at_beginning)
-    //     ov_raw_seek(&player->vbfile, 0);
 }
 
 int StopBgmAl(void)
@@ -669,11 +663,10 @@ static long LoadBufferData(StreamPlayer *player, BufferFillFlags *buff_flags)
     // Set the bytes read to 0, since we didn't read any bytes yet
     long total_buffer_bytes_read = 0;
     // Set the max request size to get data from the vorbis file
-    int request_size = VORBIS_REQUEST_SIZE;
+    int request_size = BGM_BUFFER_SAMPLES;
     // Our goal is to read enough bytes to fill up our buffer samples (8kbs), so while we have read less than that, keep loading.
     // This is due to vorbis reading random amounts, and not the whole size at once.
     while (total_buffer_bytes_read < BGM_BUFFER_SAMPLES)
-    // while (total_buffer_bytes_read < VORBIS_REQUEST_SIZE)
     {
         // Update the request size.  Remember our goal is to read the full buffer.
         request_size = (total_buffer_bytes_read + request_size <= BGM_BUFFER_SAMPLES)
@@ -683,20 +676,17 @@ static long LoadBufferData(StreamPlayer *player, BufferFillFlags *buff_flags)
         request_size = (total_buffer_bytes_read + request_size + player->total_bytes_read_this_loop <= player->loop_point_end)
                            ? request_size
                            : player->loop_point_end - (total_buffer_bytes_read + player->total_bytes_read_this_loop);
+        // Check to see if our request size is 0, this means we are at the loop end point
         if (request_size == 0)
         {
             *buff_flags = Buff_Fill_MusicHitLoopPoint;
             break;
-            // We are at the end of the loop point.
         }
-        // Actually read from the file.Notice we offset our memory location(membuf) by the amount of bytes read so that we keep loading more.
-        // int current_pass_bytes_read = ov_read(&player->vbfile, (char *)player->membuf + total_buffer_bytes_read, request_size, 0, sizeof(short), 1, 0);
-        // int num_samples = stb_vorbis_get_samples_short_interleaved(player->vbfile, player->vbinfo.channels, player->membuf, request_size);
-        int num_samples = stb_vorbis_get_samples_short_interleaved(player->vbfile, player->vbinfo.channels, (char *)player->membuf + total_buffer_bytes_read, request_size / sizeof(short));
-        // int current_pass_bytes_read = num_samples * sizeof(short);
-        // int current_pass_bytes_read = num_samples;
+        // Actually read from the file. Notice we offset our memory location(membuf) by the amount of bytes read so that we keep loading more into the buffer.
+        // We need to cast membuf to a char*, so that we offset by bytes.. if you don't, then it tries to pointer aritimitic by short.  We then need to cast back to short
+        int num_samples = stb_vorbis_get_samples_short_interleaved(player->vbfile, player->vbinfo.channels, (short *)((char *)player->membuf + total_buffer_bytes_read), request_size / sizeof(short));
+        // Convert samples to bytes as this is how we track different things
         int current_pass_bytes_read = num_samples * sizeof(short) * player->vbinfo.channels;
-        // int current_pass_bytes_read = ov_read(&player->vbfile, (char *)player->membuf + total_buffer_bytes_read, request_size, 0, sizeof(short), 1, 0);
         // If we have read 0 bytes, we are at the end of the song.
         if (current_pass_bytes_read == 0)
         {
@@ -716,19 +706,8 @@ static long LoadBufferData(StreamPlayer *player, BufferFillFlags *buff_flags)
 
 static int RestartStream(StreamPlayer *player)
 {
-    // ov_pcm_seek_lap(&player->vbfile, player->loop_point_begin);
-    puts("Restarting!");
-    // int current_time = (float) f->sample_rate
-    // int current_time = stb_vorbis_get_sample_offset(player->vbfile) * player->vbinfo.channels / player->vbinfo.sample_rate;
     stb_vorbis_seek(player->vbfile, player->loop_point_begin);
-    // stb_vorbis_seek(player->vbfile, 0);
-    // int num_samples = stb_vorbis_get_samples_short_interleaved(player->vbfile, player->vbinfo.channels, player->membuf, request_size);
-    // int current_pass_bytes_read = num_samples * sizeof(short);
-    // player->total_bytes_read_this_loop = current_pass_bytes_read;
-
-    // player->total_bytes_read_this_loop = ov_pcm_tell(&player->vbfile) * player->vbinfo->channels * sizeof(short);
     player->total_bytes_read_this_loop = stb_vorbis_get_sample_offset(player->vbfile) * player->vbinfo.channels * sizeof(short);
-    // player->total_bytes_read_this_loop = 0;
     return 0;
 }
 
@@ -757,7 +736,6 @@ static void DeletePlayer(StreamPlayer *player)
 
 static void ClosePlayerFile(StreamPlayer *player)
 {
-    // ov_clear(&player->vbfile);
     stb_vorbis_close(player->vbfile);
     player->total_bytes_read_this_loop = 0;
     player->file_loaded = 0;
