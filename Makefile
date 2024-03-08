@@ -18,7 +18,7 @@ all: build run
 
 # Macos dev
 configure:
-	@cmake . -B build -D CMAKE_BUILD_TYPE=Debug -G $(BUILD_SYSTEM)
+	@cmake . -B build -D CMAKE_BUILD_TYPE=Debug -G $(BUILD_SYSTEM) -DINSTALL_SG_SOUND=ON
 econfigure:
 	@emcmake cmake . -B build -D CMAKE_BUILD_TYPE=Debug -G $(BACKUP_BUILD_SYSTEM) -DGOON_FULL_MACOS_BUILD=ON -DCMAKE_VERBOSE_MAKEFILE=ON
 # Macos Runner
@@ -38,7 +38,7 @@ build:
 	@cmake --build build --config $(MSVC_CONFIG_TYPE)
 
 install:
-	@cmake --install build --config $(MSVC_CONFIG_TYPE)
+	@sudo cmake --install build --config $(MSVC_CONFIG_TYPE)
 # Exports the tilesets if we need to as lua files for tsx/tmx
 tiled:
 	@$(foreach file,$(TILED_EXPORT_TILESETS),\

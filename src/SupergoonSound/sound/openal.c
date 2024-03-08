@@ -1,19 +1,29 @@
-#include <SupergoonSound/gnpch.h>
+/**
+ * @file openal.c
+ * @author your name (you@domain.com)
+ * @brief
+ * @version 0.1
+ * @date 2024-03-08
+ *
+ * @copyright Copyright (c) 2024
+ *
+ *  * Notes:
+ * Sample - The smallest form of measurement of something in audio
+ * SampleSize - In our case, we are using shorts, so you need to multiply sample * sizeof(short)
+ * Channels - how many speakers you are loading for, needs to load data for both.
+ * Bytes - SampleSize * channels
+ */
 #include <vorbis/vorbisfile.h>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <SupergoonSound/gnpch.h>
+#include <SupergoonSound/sound/alhelpers.h>
+#include <SupergoonSound/sound/openal.h>
+#include <SupergoonSound/base/stack.h>
+#include <SupergoonSound/base/vector.h>
 
 #define BGM_NUM_BUFFERS 4
 #define BGM_BUFFER_SAMPLES 8192 // 8kb
-
-// #include <ogg/os_types.h>
-// #include <vorbis/codec.h>
-
-#include <AL/al.h>
-#include <SupergoonSound/sound/alhelpers.h>
-#include <SupergoonSound/sound/openal.h>
-
-#include "../base/stack.h"
-#include "../base/vector.h"
-
 #define MAX_SFX_SOUNDS 10
 #define VORBIS_REQUEST_SIZE 4096 // Max size to request from vorbis to load.
 
@@ -262,7 +272,6 @@ static StreamPlayer *NewPlayer(void)
     // TODO can we actually load more here?  Seems like our buffers arent fully loading for some reason.
     size_t data_read_size = (size_t)(BGM_BUFFER_SAMPLES);
     player->membuf = malloc(data_read_size);
-
     player->loops = 255;
     fprintf(stderr, "New player\n");
     return player;
@@ -317,7 +326,6 @@ static int PreBakeBgmAl(StreamPlayer *player, const char *filename, double *loop
         return 0;
     alSourceRewind(player->source);
     alSourcei(player->source, AL_BUFFER, 0);
-    // alSourcef(player->source, AL_GAIN, volume);
     PreBakeBuffers(player);
     return 1;
 }
@@ -384,7 +392,6 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *lo
 
 static void GetLoopPoints(StreamPlayer *player, double *loop_begin, double *loop_end)
 {
-    unsigned char not_at_beginning = 0;
     if ((*loop_begin) >= (*loop_end))
     {
         fprintf(stderr, "SUPERGOON SOUND - Your loop end is greater or equal to loop begin, loop_end will be set to 0, please fix this in your call\nLoopBegin: %f LoopEnd %f\n", (*loop_begin), (*loop_end));
@@ -392,24 +399,20 @@ static void GetLoopPoints(StreamPlayer *player, double *loop_begin, double *loop
     }
     if (loop_begin && (*loop_begin > 0))
     {
-        ov_time_seek(&player->vbfile, *loop_begin);
-        player->loop_point_begin = ov_pcm_tell(&player->vbfile);
-        not_at_beginning = 1;
+        player->loop_point_begin = (int64_t)(*loop_begin * player->vbinfo->rate);
     }
     else
         player->loop_point_begin = ov_pcm_tell(&player->vbfile);
+
     // Loop end needs to be measured against our buffers loading, so they will be multiplied by channels and sizeof.
     // Due to us checking this on every step.
     if (loop_end && (*loop_end) > 0)
     {
-        ov_time_seek(&player->vbfile, *loop_end);
-        player->loop_point_end = ov_pcm_tell(&player->vbfile) * player->vbinfo->channels * sizeof(short);
-        not_at_beginning = 1;
+        int64_t sample_offset = (int64_t)(*loop_end * player->vbinfo->rate);
+        player->loop_point_end = sample_offset * player->vbinfo->channels * sizeof(short);
     }
     else
         player->loop_point_end = ov_pcm_total(&player->vbfile, -1) * player->vbinfo->channels * sizeof(short);
-    if (not_at_beginning)
-        ov_raw_seek(&player->vbfile, 0);
 }
 
 int StopBgmAl(void)
@@ -591,8 +594,6 @@ static int UpdatePlayer(StreamPlayer *player)
 static int UpdateSfxPlayer(SfxPlayer *player)
 {
     ALint processed_buffers;
-
-    // int processed_buffer_nums[player->playing_buffers_vector->size];
     int processed_buffer_nums[MAX_SFX_SOUNDS];
     int buffs_processed = 0;
     for (size_t i = 0; i < player->playing_buffers_vector->size; ++i)

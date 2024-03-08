@@ -54,7 +54,7 @@ void loop_func(void)
     }
     if (shouldQuit)
         return;
-    UpdateSound();
+    gsUpdateSound();
     SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
     SDL_RenderClear(renderer);
     SDL_RenderPresent(renderer);
@@ -69,10 +69,10 @@ int main(void)
     }
 
     CreateSdlWindow();
-    int result = InitializeSound();
+    int result = gsInitializeSound();
     printf("Result is %d\n", result);
-    LoadBgm("test.ogg", 20.397, 43.08);
-    result = PlayBgm(1.0);
+    gsLoadBgm("test.ogg", 20.397, 43.08);
+    result = gsPlayBgm(1.0);
     printf("Result is %d\n", result);
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(loop_func, 0, 1);

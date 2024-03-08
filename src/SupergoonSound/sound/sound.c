@@ -8,12 +8,12 @@
  */
 static const char *sfx_prefix = "";
 
-int InitializeSound(void)
+int gsInitializeSound(void)
 {
     return InitializeAl();
 }
 
-Bgm* LoadBgm(const char *filename_suffix, float loop_begin, float loop_end)
+Bgm* gsLoadBgm(const char *filename_suffix, float loop_begin, float loop_end)
 {
     Bgm *bgm = malloc(sizeof(*bgm));
     // We need to add one here, since strlen and len do not include their null terminator, and we need that in our string and we are going to combine things.
@@ -25,13 +25,14 @@ Bgm* LoadBgm(const char *filename_suffix, float loop_begin, float loop_end)
     bgm->loop_end = loop_end;
     return bgm;
 }
-int PreLoadBgm(Bgm* bgm)
+
+int gsPreLoadBgm(Bgm* bgm)
 {
     PreBakeBgm(bgm->bgm_name, &bgm->loop_begin, &bgm->loop_end);
     return true;
 }
 
-Sfx* LoadSfxHelper(const char* filename)
+Sfx* gsLoadSfxHelper(const char* filename)
 {
         Sfx *sfx = malloc(sizeof(*sfx));
         size_t name_length = strlen(sfx_prefix) + strlen(filename) + 1;
@@ -42,25 +43,25 @@ Sfx* LoadSfxHelper(const char* filename)
         return sfx;
 }
 
-int PlayBgm(float volume)
+int gsPlayBgm(float volume)
 {
     return PlayBgmAl(volume);
 }
 
-int StopBgm(void)
+int gsStopBgm(void)
 {
     return StopBgmAl();
 }
-int PauseBgm(void)
+int gsPauseBgm(void)
 {
     return PauseBgmAl();
 }
-int UnPauseBgm(void)
+int gsUnPauseBgm(void)
 {
     return UnpauseBgmAl();
 }
 
-int PlaySfxOneShot(Sfx* sfx, float volume)
+int gsPlaySfxOneShot(Sfx* sfx, float volume)
 {
     if (!sfx->loaded_sfx)
     {
@@ -70,7 +71,7 @@ int PlaySfxOneShot(Sfx* sfx, float volume)
     return 1;
 }
 
-int LoadSfx(Sfx* sfx)
+int gsLoadSfx(Sfx* sfx)
 {
     if (!sfx->loaded_sfx)
     {
@@ -79,7 +80,7 @@ int LoadSfx(Sfx* sfx)
     return (sfx->loaded_sfx != NULL) ? 1 : 0;
 }
 
-int UnloadSfx(Sfx* sfx)
+int gsUnloadSfx(Sfx* sfx)
 {
     if (sfx->loaded_sfx)
     {
@@ -95,7 +96,7 @@ int UnloadSfx(Sfx* sfx)
     return (sfx == NULL) ? 1 : 0;
 }
 
-void UpdateSound(void)
+void gsUpdateSound(void)
 {
     UpdateAl();
 }
