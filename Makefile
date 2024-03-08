@@ -38,7 +38,7 @@ build:
 	@cmake --build build --config $(MSVC_CONFIG_TYPE)
 
 install:
-	@cmake --install build --config $(MSVC_CONFIG_TYPE)
+	@sudo cmake --install build --config $(MSVC_CONFIG_TYPE)
 # Exports the tilesets if we need to as lua files for tsx/tmx
 tiled:
 	@$(foreach file,$(TILED_EXPORT_TILESETS),\
