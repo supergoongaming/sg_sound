@@ -2,7 +2,7 @@
 # Initial config
 # #########################################
 cmake_minimum_required(VERSION 3.16)
-message(STATUS "Starting Supergoon Sount Initialization")
+message(STATUS "Starting Supergoon Sound Initialization")
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -13,7 +13,7 @@ message(STATUS "Project initializing")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 include(FindPkgConfig)
 project(supergoonSound
-    VERSION 0.1.0
+    VERSION 1.0.0
     LANGUAGES C)
 
 # #########################################
@@ -57,25 +57,18 @@ endif(EMSCRIPTEN)
 # #########################################
 option(CMAKE_DEBUG_VARIABLES "Runs a debug on all variables for troubleshooting" OFF)
 option(GOON_BUILD_PCH "Uses a PCH file to try and speed up compilation" ON)
-option(BUILD_SDL_TEST "Builds a test suite instead of a library" OFF)
+option(INSTALL_SG_SOUND "Installs SG sound" OFF)
 
 # option(GOON_FULL_MACOS_BUILD "Full builds of all libraries, used for runners mostly, and passed in to override." OFF)
-option(GOON_BUILD_TESTING "Should we enable testing" OFF)
-set(BUILD_TESTING GOON_BUILD_TESTING)
 
 # #########################################
 # Initialize
 # #########################################
 message(STATUS "Initializing the project")
 
-if(BUILD_SDL_TEST)
-    add_executable(supergoonSound
-        ${FILES})
-else()
-    add_library(supergoonSound
-        STATIC
-        ${FILES})
-endif(BUILD_SDL_TEST)
+add_library(supergoonSound
+    STATIC
+    ${FILES})
 
 # Using 11 instead of 99 for forward declaring typedef
 set_property(TARGET supergoonSound PROPERTY C_STANDARD 11)
@@ -86,24 +79,17 @@ find_package(PkgConfig REQUIRED)
 # #########################################
 # Most dev is done here, so to speed up builds don't rebuild all packages, must have them installed.
 if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
-    # 1. Look for a SDL2 package, 2. look for the SDL2 component and 3. fail if none can be found
-    if(BUILD_SDL_TEST)
-        find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
-        find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
-    endif(BUILD_SDL_TEST)
-
+    find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
     find_library(LIB_VORBIS
         REQUIRED
         PATH_SUFFIXES .a
         NAMES libvorbis vorbis vorbis.a vorbis.dll libvorbis.a
         HINTS /usr/local/lib /c/cmake/lib)
-
     find_library(LIB_VORBISFILE
         REQUIRED
         PATH_SUFFIXES .a
         NAMES libvorbisfile vorbisfile vorbisfile.a vorbisfile.dll
         HINTS /usr/local/lib)
-
     find_package(
         OGG
         NAMES ogg Ogg
@@ -125,9 +111,9 @@ else()
         endif()
 
         # Do not as emscripten
-        if(BUILD_SDL_TEST AND NOT EMSCRIPTEN)
+        if(NOT EMSCRIPTEN)
             add_subdirectory(./external/SDL)
-        endif(BUILD_SDL_TEST AND NOT EMSCRIPTEN)
+        endif(NOT EMSCRIPTEN)
 
         # Remove exclude from all, as this is needed for vorbis
         add_subdirectory(./external/ogg)
@@ -207,16 +193,8 @@ endif(WIN32)
 # Linking Options
 # #########################################
 
-# SDL2::SDL2main may or may not be available. It is e.g. required by Windows GUI applications
-if(BUILD_SDL_TEST AND TARGET SDL2::SDL2main)
-    # It has an implicit dependency on SDL2 functions, so it MUST be added before SDL2::SDL2 (or SDL2::SDL2-static)
-    target_link_libraries(supergoonSound PRIVATE SDL2::SDL2main)
-endif()
-
-# If we are building SDL2, we whould link to it.  Emscripten builds do not build sdl2.
-if(BUILD_SDL_TEST AND TARGET SDL2::SDL2-static)
-    target_link_libraries(supergoonSound PRIVATE SDL2::SDL2-static)
-endif()
+# Public link to SDL, so that we can pass it upstream.
+target_link_libraries(supergoonSound PUBLIC SDL2::SDL2-static)
 
 if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
     # If we are building locally, we already have all the libraries.
@@ -245,6 +223,7 @@ target_include_directories(supergoonSound
     ${CMAKE_CURRENT_SOURCE_DIR}/external/vorbis/include
     ${CMAKE_CURRENT_SOURCE_DIR}/external/ogg/include
     ${CMAKE_BINARY_DIR}/external/ogg/include
+
     # Needed when building as library
     ${CMAKE_BINARY_DIR}/external/SDL/include
     ${CMAKE_CURRENT_SOURCE_DIR}/external/SDL/include
@@ -253,19 +232,5 @@ target_include_directories(supergoonSound
 # #########################################
 # Install
 # #########################################
-if(BUILD_SDL_TEST)
-    set(FOLDERS_TO_COPY assets)
-
-    if(MSVC OR CMAKE_GENERATOR STREQUAL "Xcode")
-        set(INSTALL_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>)
-    else()
-        set(INSTALL_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-    endif(MSVC OR CMAKE_GENERATOR STREQUAL "Xcode")
-
-    install(DIRECTORY ${FOLDERS_TO_COPY}
-        DESTINATION ${INSTALL_DIR}
-        PATTERN "*.tsx" EXCLUDE
-        PATTERN "*.tmx" EXCLUDE
-        PATTERN "*.tiled-project" EXCLUDE
-    )
-endif(BUILD_SDL_TEST)
+if(INSTALL_SG_SOUND)
+endif(INSTALL_SG_SOUND)
