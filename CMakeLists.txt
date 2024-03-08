@@ -86,10 +86,7 @@ find_package(PkgConfig REQUIRED)
 # #########################################
 # Most dev is done here, so to speed up builds don't rebuild all packages, must have them installed.
 if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
-    # 1. Look for a SDL2 package, 2. look for the SDL2 component and 3. fail if none can be found
-    if(BUILD_SDL_TEST)
-    endif(BUILD_SDL_TEST)
-
+    find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
 
 # Build everything, useful for runners, and builds we don't care take a little longer.
 else()
@@ -97,26 +94,25 @@ else()
     message(STATUS "Cloning and updating submodules")
 
     # if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-    #     execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-    #         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    #         RESULT_VARIABLE GIT_SUBMOD_RESULT)
+    # execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+    # WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    # RESULT_VARIABLE GIT_SUBMOD_RESULT)
 
-    #     if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-    #         message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-    #     endif()
+    # if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+    # message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+    # endif()
 
-    #     # Do not as emscripten
-    #     if(BUILD_SDL_TEST AND NOT EMSCRIPTEN)
-    #         add_subdirectory(./external/SDL)
-        # endif(BUILD_SDL_TEST AND NOT EMSCRIPTEN)
+    # # Do not as emscripten
+    # if(BUILD_SDL_TEST AND NOT EMSCRIPTEN)
+    # add_subdirectory(./external/SDL)
+    # endif(BUILD_SDL_TEST AND NOT EMSCRIPTEN)
 
-
-        # Remove exclude from all, as this is needed for vorbis
-        # add_subdirectory(./external/ogg)
-        # add_subdirectory(./external/vorbis)
+    # Remove exclude from all, as this is needed for vorbis
+    # add_subdirectory(./external/ogg)
+    # add_subdirectory(./external/vorbis)
 
     # else()
-        # message(STATUS "Could not init git for some reason")
+    # message(STATUS "Could not init git for some reason")
     # endif()
 endif(MACOS AND NOT GOON_FULL_MACOS_BUILD)
 
@@ -189,49 +185,16 @@ endif(WIN32)
 # Linking Options
 # #########################################
 
-# SDL2::SDL2main may or may not be available. It is e.g. required by Windows GUI applications
-if(BUILD_SDL_TEST AND TARGET SDL2::SDL2main)
-    # It has an implicit dependency on SDL2 functions, so it MUST be added before SDL2::SDL2 (or SDL2::SDL2-static)
-    target_link_libraries(supergoonSound PRIVATE SDL2::SDL2main)
-endif()
-
-# If we are building SDL2, we whould link to it.  Emscripten builds do not build sdl2.
-# if(BUILD_SDL_TEST AND TARGET SDL2::SDL2-static)
-if(BUILD_SDL_TEST AND TARGET SDL2::SDL2-static)
-    target_link_libraries(supergoonSound PRIVATE SDL2::SDL2-static)
-endif()
-
-target_link_libraries(supergoonSound PUBLIC SDL2::SDL2-static)
-
+# We include sdl here, and make it public so others can use it too.
 if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
-    # If we are building locally, we already have all the libraries.
-    target_link_libraries(supergoonSound
-        PRIVATE
-
-        # ${LIB_VORBISFILE}
-        # ${LIB_VORBIS}
-        # ${OGG_LIBRARIES}
-    )
-else()
-    target_link_libraries(supergoonSound
-        PUBLIC
-        PRIVATE
-
-        # ogg
-        # vorbis vorbisenc vorbisfile
-    )
+    target_link_libraries(supergoonSound PUBLIC SDL2::SDL2-static)
 endif(MACOS AND NOT GOON_FULL_MACOS_BUILD)
 
-# Link to the actual SDL2 library. SDL2::SDL2 is the shared SDL library, SDL2::SDL2-static is the static SDL libarary.
 target_include_directories(supergoonSound
-    PUBLIC
+    PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/
     ${CMAKE_CURRENT_SOURCE_DIR}/external/mojoAL
 
-    # Need both ogg targets, ogg cmakelists is total trash bro.
-    # ${CMAKE_CURRENT_SOURCE_DIR}/external/vorbis/include
-    # ${CMAKE_CURRENT_SOURCE_DIR}/external/ogg/include
-    # ${CMAKE_BINARY_DIR}/external/ogg/include
     # Needed when building as library
     ${CMAKE_BINARY_DIR}/external/SDL/include
     ${CMAKE_CURRENT_SOURCE_DIR}/external/SDL/include
@@ -256,3 +219,37 @@ if(BUILD_SDL_TEST)
         PATTERN "*.tiled-project" EXCLUDE
     )
 endif(BUILD_SDL_TEST)
+
+# Should install this somewhere
+set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
+set(INSTALL_INC_DIR include CACHE PATH "Installation directory for headers")
+install(TARGETS supergoonSound
+    EXPORT supergoonSoundTargets
+    ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+    LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+    INCLUDES DESTINATION ${INSTALL_INC_DIR})
+install(EXPORT supergoonSoundTargets
+    FILE supergoonSoundTargets.cmake
+    NAMESPACE supergoonSound::
+    DESTINATION lib/cmake/supergoonSound)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/
+    DESTINATION ${INSTALL_INC_DIR}
+    FILES_MATCHING PATTERN "*.h*")
+    include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
+    VERSION 0.1.0
+    COMPATIBILITY SameMajorVersion
+)
+configure_package_config_file(
+    ${CMAKE_CURRENT_LIST_DIR}/supergoonSoundConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
+    INSTALL_DESTINATION lib/cmake/supergoonSound
+)
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
+    DESTINATION lib/cmake/supergoonSound
+)
+
+

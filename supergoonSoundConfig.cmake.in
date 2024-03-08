@@ -1,0 +1,22 @@
+# - Config file for the supergoonSound library
+
+# The following variables are used to populate the configuration file:
+#   SUPERGOONSOUND_INCLUDE_DIRS - Include directories for supergoonSound
+#   SUPERGOONSOUND_LIBRARIES    - List of supergoonSound libraries to link against
+
+# Check if the requested version is compatible
+include(CMakeFindDependencyMacro)
+include("${CMAKE_CURRENT_LIST_DIR}/supergoonSoundTargets.cmake")
+
+set(SUPERGOONSOUND_INCLUDE_DIRS
+    "@PACKAGE_PREFIX_DIR@/include"
+    CACHE PATH "Installation directory for headers"
+)
+
+set(SUPERGOONSOUND_LIBRARIES
+    supergoonSound::supergoonSound
+    CACHE STRING "supergoonSound libraries"
+)
+
+mark_as_advanced(SUPERGOONSOUND_INCLUDE_DIRS SUPERGOONSOUND_LIBRARIES)
+
