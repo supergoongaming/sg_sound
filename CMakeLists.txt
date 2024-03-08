@@ -221,35 +221,35 @@ if(BUILD_SDL_TEST)
 endif(BUILD_SDL_TEST)
 
 # Should install this somewhere
-set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
-set(INSTALL_INC_DIR include CACHE PATH "Installation directory for headers")
-install(TARGETS supergoonSound
-    EXPORT supergoonSoundTargets
-    ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-    LIBRARY DESTINATION ${INSTALL_LIB_DIR}
-    INCLUDES DESTINATION ${INSTALL_INC_DIR})
-install(EXPORT supergoonSoundTargets
-    FILE supergoonSoundTargets.cmake
-    NAMESPACE supergoonSound::
-    DESTINATION lib/cmake/supergoonSound)
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/
-    DESTINATION ${INSTALL_INC_DIR}
-    FILES_MATCHING PATTERN "*.h*")
+if(INSTALL_SG_SOUND)
+    set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
+    set(INSTALL_INC_DIR include CACHE PATH "Installation directory for headers")
+    install(TARGETS supergoonSound
+        EXPORT supergoonSoundTargets
+        ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+        LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+        INCLUDES DESTINATION ${INSTALL_INC_DIR})
+    install(EXPORT supergoonSoundTargets
+        FILE supergoonSoundTargets.cmake
+        NAMESPACE supergoonSound::
+        DESTINATION lib/cmake/supergoonSound)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/
+        DESTINATION ${INSTALL_INC_DIR}
+        FILES_MATCHING PATTERN "*.h*")
     include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
-    VERSION 0.1.0
-    COMPATIBILITY SameMajorVersion
-)
-configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/supergoonSoundConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
-    INSTALL_DESTINATION lib/cmake/supergoonSound
-)
-install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
-    DESTINATION lib/cmake/supergoonSound
-)
-
-
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
+        VERSION 0.1.0
+        COMPATIBILITY SameMajorVersion
+    )
+    configure_package_config_file(
+        ${CMAKE_CURRENT_LIST_DIR}/supergoonSoundConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
+        INSTALL_DESTINATION lib/cmake/supergoonSound
+    )
+    install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
+        DESTINATION lib/cmake/supergoonSound
+    )
+endif(INSTALL_SG_SOUND)
