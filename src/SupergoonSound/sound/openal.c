@@ -467,21 +467,17 @@ Sg_Loaded_Sfx *LoadSfxFileAl(const char *filename)
 static Sg_Loaded_Sfx *LoadSfxFile(const char *filename)
 {
     // TODO Close a sfx_player
-    // vorbis_info *vbinfo;
     stb_vorbis_info vbinfo;
     stb_vorbis *vbfile;
     Sg_Loaded_Sfx *loaded_sfx;
     loaded_sfx = calloc(1, sizeof(*loaded_sfx));
-
     int result;
-    // int result = ov_fopen(filename, &vbfile);
     vbfile = stb_vorbis_open_filename(filename, &result, NULL);
     if (vbfile == NULL)
     {
         fprintf(stderr, "Could not open audio in %s: %d\n", filename, result);
         return 0;
     }
-    // vbinfo = ov_info(&vbfile, -1);
     vbinfo = stb_vorbis_get_info(vbfile);
     if (vbinfo.channels == 1)
     {
@@ -495,13 +491,10 @@ static Sg_Loaded_Sfx *LoadSfxFile(const char *filename)
     {
         fprintf(stderr, "Unsupported channel count: %d\n", vbinfo.channels);
         stb_vorbis_close(vbfile);
-        // ov_clear(&vbfile);
         return 0;
     }
     loaded_sfx->sample_rate = vbinfo.sample_rate;
 
-    // Get the size of the file in pcm.
-    // loaded_sfx->size = ov_pcm_total(&vbfile, -1) * vbinfo.channels * sizeof(short);
     loaded_sfx->size = stb_vorbis_stream_length_in_samples(vbfile) * vbinfo.channels * sizeof(short);
     loaded_sfx->sound_data = malloc(loaded_sfx->size);
     int total_buffer_bytes_read = 0;
@@ -509,13 +502,11 @@ static Sg_Loaded_Sfx *LoadSfxFile(const char *filename)
     while (!fully_loaded)
     {
         int num_samples = stb_vorbis_get_samples_short_interleaved(vbfile, vbinfo.channels, (short *)((char *)loaded_sfx->sound_data + total_buffer_bytes_read), BGM_BUFFER_SAMPLES / sizeof(short));
-        // Convert samples to bytes as this is how we track different things
         int current_pass_bytes_read = num_samples * sizeof(short) * vbinfo.channels;
         total_buffer_bytes_read += current_pass_bytes_read;
-        if (total_buffer_bytes_read == 0)
+        if (current_pass_bytes_read == 0)
             fully_loaded = 1;
     }
-    // ov_clear(&vbfile);
     stb_vorbis_close(vbfile);
     return loaded_sfx;
 }
