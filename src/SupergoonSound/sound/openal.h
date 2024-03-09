@@ -67,3 +67,5 @@ void UpdateAl(void);
  * @return 1 on Success, 0 on failure.
  */
 int CloseAl(void);
+
+void SetPlayerLoops(int loops);

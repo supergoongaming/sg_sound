@@ -93,6 +93,7 @@ extern "C"
      * @brief Closes openal and destroys all bgm and sfx.
      */
     void gsCloseSound(void);
+    void gsSetPlayerLoops(int loop);
 
 #ifdef __cplusplus
 }
