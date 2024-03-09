@@ -28,12 +28,8 @@
  * finding an appropriate buffer format, and getting readable strings for
  * channel configs and sample types. */
 
-#include "alhelpers.h"
-
-#include <stdio.h>
+#include <SupergoonSound/sound/alhelpers.h>
 #include <errno.h>
-#include <string.h>
-
 #include <AL/al.h>
 #include <AL/alc.h>
 

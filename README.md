@@ -1,5 +1,5 @@
 # Supergoon Sound
-A C wrapper around openal1.1 that works with SDL2 for all platforms, that allows for looping music at points (IntroLoop), so that you can play a sound file and it loops and doesn't play the full song again.
+A C wrapper around openal1.1 that works with SDL2 for all platforms, that allows for looping music at points (IntroLoop), so that you can play a sound file and it loops and doesn't play the full song again.  Only supports ogg vorbis files for now.
 
 ## Development
 - Mostly developed on macos apple silicon
@@ -20,6 +20,7 @@ A C wrapper around openal1.1 that works with SDL2 for all platforms, that allows
 - Make: Streamlining building with one command
 - Emscripten: Build for web
 - MojoAL: OpenAL 1.1 wrapper for SDL
+- Ogg, Vorbis, and Vorbisfile.
 
 ## Licenses
 - MIT

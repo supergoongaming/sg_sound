@@ -7,7 +7,7 @@
  *
  * @copyright Copyright (c) 2024
  *
- *  * Notes:
+ * Notes:
  * Sample - The smallest form of measurement of something in audio
  * SampleSize - In our case, we are using shorts, so you need to multiply sample * sizeof(short)
  * Channels - how many speakers you are loading for, needs to load data for both.
@@ -269,11 +269,9 @@ static StreamPlayer *NewPlayer(void)
     alSourcei(player->source, AL_ROLLOFF_FACTOR, 0);
     result = alGetError();
     assert(result == AL_NO_ERROR && "Could not set source rolloff");
-    // TODO can we actually load more here?  Seems like our buffers arent fully loading for some reason.
     size_t data_read_size = (size_t)(BGM_BUFFER_SAMPLES);
     player->membuf = malloc(data_read_size);
     player->loops = 255;
-    fprintf(stderr, "New player\n");
     return player;
 }
 
