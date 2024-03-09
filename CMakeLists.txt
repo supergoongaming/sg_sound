@@ -90,11 +90,11 @@ if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
         PATH_SUFFIXES .a
         NAMES libvorbisfile vorbisfile vorbisfile.a vorbisfile.dll
         HINTS /usr/local/lib)
-    find_package(
-        OGG
-        NAMES ogg Ogg
+    find_library(LIB_OGG
+        REQUIRED
         PATH_SUFFIXES .a .dll
-        REQUIRED)
+        NAMES ogg Ogg
+        HINTS /usr/local/lib)
 
 # Build everything, useful for runners, and builds we don't care take a little longer.
 else()
@@ -202,9 +202,11 @@ if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
         INTERFACE
         ${LIB_VORBISFILE}
         ${LIB_VORBIS}
+        ${LIB_OGG}
         ${OGG_LIBRARIES}
     )
 else()
+    # Use the names that are exported from building in subdirectories
     target_link_libraries(supergoonSound
         INTERFACE
         Ogg::ogg
@@ -212,7 +214,6 @@ else()
     )
 endif(MACOS AND NOT GOON_FULL_MACOS_BUILD)
 
-# Link to the actual SDL2 library. SDL2::SDL2 is the shared SDL library, SDL2::SDL2-static is the static SDL libarary.
 target_include_directories(supergoonSound
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/
@@ -232,34 +233,34 @@ target_include_directories(supergoonSound
 # Install
 # #########################################
 if(INSTALL_SG_SOUND)
-set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
-set(INSTALL_INC_DIR include CACHE PATH "Installation directory for headers")
-install(TARGETS supergoonSound
-    EXPORT supergoonSoundTargets
-    ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-    LIBRARY DESTINATION ${INSTALL_LIB_DIR}
-    INCLUDES DESTINATION ${INSTALL_INC_DIR})
-install(EXPORT supergoonSoundTargets
-    FILE supergoonSoundTargets.cmake
-    NAMESPACE supergoonSound::
-    DESTINATION lib/cmake/supergoonSound)
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/
-    DESTINATION ${INSTALL_INC_DIR}
-    FILES_MATCHING PATTERN "*.h*")
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
-    VERSION 0.1.0
-    COMPATIBILITY SameMajorVersion
-)
-configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/supergoonSoundConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
-    INSTALL_DESTINATION lib/cmake/supergoonSound
-)
-install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
-    DESTINATION lib/cmake/supergoonSound
-)
+    set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
+    set(INSTALL_INC_DIR include CACHE PATH "Installation directory for headers")
+    install(TARGETS supergoonSound
+        EXPORT supergoonSoundTargets
+        ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+        LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+        INCLUDES DESTINATION ${INSTALL_INC_DIR})
+    install(EXPORT supergoonSoundTargets
+        FILE supergoonSoundTargets.cmake
+        NAMESPACE supergoonSound::
+        DESTINATION lib/cmake/supergoonSound)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/
+        DESTINATION ${INSTALL_INC_DIR}
+        FILES_MATCHING PATTERN "*.h*")
+    include(CMakePackageConfigHelpers)
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
+        VERSION 0.1.0
+        COMPATIBILITY SameMajorVersion
+    )
+    configure_package_config_file(
+        ${CMAKE_CURRENT_LIST_DIR}/supergoonSoundConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
+        INSTALL_DESTINATION lib/cmake/supergoonSound
+    )
+    install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
+        DESTINATION lib/cmake/supergoonSound
+    )
 endif(INSTALL_SG_SOUND)
