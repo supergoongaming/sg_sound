@@ -199,7 +199,7 @@ target_link_libraries(supergoonSound PUBLIC SDL2::SDL2-static)
 if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
     # If we are building locally, we already have all the libraries.
     target_link_libraries(supergoonSound
-        INTERFACE
+        PUBLIC
         ${LIB_VORBISFILE}
         ${LIB_VORBIS}
         ${LIB_OGG}
@@ -208,14 +208,14 @@ if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
 else()
     # Use the names that are exported from building in subdirectories
     target_link_libraries(supergoonSound
-        INTERFACE
-        Ogg::ogg
-        vorbis vorbisenc vorbisfile
+        PUBLIC
+        vorbis vorbisenc vorbisfile ogg
     )
 endif(MACOS AND NOT GOON_FULL_MACOS_BUILD)
 
+# This needs to be private when installing, and public when building in emscripten?
 target_include_directories(supergoonSound
-    PRIVATE
+    PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/
     ${CMAKE_CURRENT_SOURCE_DIR}/external/mojoAL
 
