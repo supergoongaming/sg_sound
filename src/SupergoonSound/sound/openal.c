@@ -744,7 +744,5 @@ static void DeleteSfxPlayer(SfxPlayer *sfx_player)
 
 void SetPlayerLoops(int loops)
 {
-    fprintf(stderr, "player loops is %d", bgm_player->loops);
     bgm_player->loops = loops;
-    fprintf(stderr, "player loops is %d", bgm_player->loops);
 }
