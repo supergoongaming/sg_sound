@@ -22,7 +22,7 @@ extern "C"
         double loop_begin;
         double loop_end;
 
-    } Bgm;
+    } gsBgm;
 
     /**
      * @brief Holds a sfx name and the loaded file if it is loaded.
@@ -31,11 +31,12 @@ extern "C"
     {
         char *sfx_name;
         Sg_Loaded_Sfx *loaded_sfx;
-    } Sfx;
+    } gsSfx;
 
-    Bgm *gsLoadBgm(const char *filename, float loop_begin, float loop_end);
-    int gsPreLoadBgm(Bgm *bgm);
-    Sfx *gsLoadSfxHelper(const char *filename);
+    gsBgm *gsLoadBgm(const char *filename);
+    gsBgm *gsLoadBgmWithLoopPoints(const char *filename, float loop_begin, float loop_end);
+    int gsPreLoadBgm(gsBgm *bgm);
+    gsSfx *gsLoadSfxHelper(const char *filename);
     /**
      * @brief Load the Sound backend, this must be called before any other functions are available.
      *
@@ -68,7 +69,7 @@ extern "C"
      *
      * @return 1 if successful, 0 if failed to start
      */
-    int gsPlaySfxOneShot(Sfx *sfx_number, float volume);
+    int gsPlaySfxOneShot(gsSfx *sfx_number, float volume);
     /**
      * @brief Preloads a sfx sound.
      *
@@ -76,7 +77,7 @@ extern "C"
      *
      * @return Returns 1 if it was loaded or already loaded, and 0 if load failed.
      */
-    int gsLoadSfx(Sfx *sfx_number);
+    int gsLoadSfx(gsSfx *sfx_number);
     /**
      * @brief Unloads a loaded sound
      *
@@ -84,7 +85,7 @@ extern "C"
      *
      * @return 1 if it was unloaded or wasn't loaded already, and 0 if it was not null
      */
-    int gsUnloadSfx(Sfx *);
+    int gsUnloadSfx(gsSfx *);
     /**
      * @brief This should be called every frame.  Updates the BGM sound and such.
      */

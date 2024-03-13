@@ -12,29 +12,39 @@ int gsInitializeSound(void)
 {
     return InitializeAl();
 }
-
-Bgm *gsLoadBgm(const char *filename_suffix, float loop_begin, float loop_end)
+gsBgm *gsLoadBgm(const char *filename_suffix)
 {
-    Bgm *bgm = malloc(sizeof(*bgm));
+    gsBgm *bgm = calloc(1, sizeof(*bgm));
     // We need to add one here, since strlen and len do not include their null terminator, and we need that in our string and we are going to combine things.
     size_t name_length = strlen(sfx_prefix) + strlen(filename_suffix) + 1;
     char *full_name = malloc(name_length * sizeof(char));
     snprintf(full_name, name_length, "%s%s", sfx_prefix, filename_suffix);
     bgm->bgm_name = full_name;
+    return bgm;
+}
+
+gsBgm *gsLoadBgmWithLoopPoints(const char *filename_suffix, float loop_begin, float loop_end)
+{
+    gsBgm *bgm = gsLoadBgm(filename_suffix);
     bgm->loop_begin = loop_begin;
     bgm->loop_end = loop_end;
     return bgm;
 }
 
-int gsPreLoadBgm(Bgm *bgm)
+int gsPreLoadBgm(gsBgm *bgm)
 {
+    if (!bgm)
+    {
+        fprintf(stderr, "Trying to preload a invalid bgm\n");
+        return false;
+    }
     PreBakeBgm(bgm->bgm_name, &bgm->loop_begin, &bgm->loop_end);
     return true;
 }
 
-Sfx *gsLoadSfxHelper(const char *filename)
+gsSfx *gsLoadSfxHelper(const char *filename)
 {
-    Sfx *sfx = malloc(sizeof(*sfx));
+    gsSfx *sfx = malloc(sizeof(*sfx));
     size_t name_length = strlen(sfx_prefix) + strlen(filename) + 1;
     char *full_name = malloc(name_length * sizeof(char));
     snprintf(full_name, name_length, "%s%s", sfx_prefix, filename);
@@ -61,7 +71,7 @@ int gsUnPauseBgm(void)
     return UnpauseBgmAl();
 }
 
-int gsPlaySfxOneShot(Sfx *sfx, float volume)
+int gsPlaySfxOneShot(gsSfx *sfx, float volume)
 {
     if (!sfx->loaded_sfx)
     {
@@ -71,7 +81,7 @@ int gsPlaySfxOneShot(Sfx *sfx, float volume)
     return 1;
 }
 
-int gsLoadSfx(Sfx *sfx)
+int gsLoadSfx(gsSfx *sfx)
 {
     if (!sfx->loaded_sfx)
     {
@@ -80,7 +90,7 @@ int gsLoadSfx(Sfx *sfx)
     return (sfx->loaded_sfx != NULL) ? 1 : 0;
 }
 
-int gsUnloadSfx(Sfx *sfx)
+int gsUnloadSfx(gsSfx *sfx)
 {
     if (sfx->loaded_sfx)
     {
