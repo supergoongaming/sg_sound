@@ -392,7 +392,6 @@ static void GetLoopPoints(StreamPlayer *player, double *loop_begin, double *loop
 {
     if ((*loop_begin) >= (*loop_end))
     {
-        fprintf(stderr, "SUPERGOON SOUND - Your loop end is greater or equal to loop begin, loop_end will be set to 0, please fix this in your call\nLoopBegin: %f LoopEnd %f\n", (*loop_begin), (*loop_end));
         (*loop_end) = 0;
     }
     if (loop_begin && (*loop_begin > 0))
