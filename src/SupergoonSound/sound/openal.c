@@ -523,7 +523,6 @@ static int PlaySfxFile(SfxPlayer *player, Sg_Loaded_Sfx *sfx_file, float volume)
 {
     if (player->free_buffers_stack->size == 0)
     {
-        puts("Buffers are empty");
         return 0;
     }
     int buffer_num = PopStack(player->free_buffers_stack);
