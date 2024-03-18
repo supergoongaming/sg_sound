@@ -72,7 +72,7 @@ add_library(supergoonSound
 
 # Using 11 instead of 99 for forward declaring typedef
 set_property(TARGET supergoonSound PROPERTY C_STANDARD 11)
-find_package(PkgConfig REQUIRED)
+# find_package(PkgConfig REQUIRED)
 
 # #########################################
 # Packages
