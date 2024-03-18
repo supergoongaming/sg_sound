@@ -105,6 +105,7 @@ else()
     if(NOT EMSCRIPTEN)
         add_subdirectory(./external/SDL)
     endif(NOT EMSCRIPTEN)
+
     # Remove exclude from all, as this is needed for vorbis
     add_subdirectory(./external/ogg)
     add_subdirectory(./external/vorbis)
@@ -179,13 +180,11 @@ endif(WIN32)
 # Linking Options
 # #########################################
 
-# Public link to SDL, so that we can pass it upstream.
-target_link_libraries(supergoonSound PUBLIC SDL2::SDL2-static)
-
+# If we are building locally, we already have all the libraries.
 if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
-    # If we are building locally, we already have all the libraries.
     target_link_libraries(supergoonSound
         PUBLIC
+        SDL2::SDL2-static
         ${LIB_VORBISFILE}
         ${LIB_VORBIS}
         ${LIB_OGG}
@@ -197,6 +196,13 @@ else()
         PUBLIC
         vorbis vorbisenc vorbisfile ogg
     )
+
+    if(NOT EMSCRIPTEN)
+        target_link_libraries(supergoonSound
+            PUBLIC
+            SDL2::SDL2-static
+        )
+    endif(NOT EMSCRIPTEN)
 endif(MACOS AND NOT GOON_FULL_MACOS_BUILD)
 
 # This needs to be private when installing, and public when building in emscripten?
