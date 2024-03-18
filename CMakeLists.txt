@@ -104,11 +104,11 @@ else()
     # Do not as emscripten
     if(NOT EMSCRIPTEN)
         add_subdirectory(./external/SDL)
+        add_subdirectory(./external/ogg)
+        add_subdirectory(./external/vorbis)
     endif(NOT EMSCRIPTEN)
 
     # Remove exclude from all, as this is needed for vorbis
-    add_subdirectory(./external/ogg)
-    add_subdirectory(./external/vorbis)
 endif(MACOS AND NOT GOON_FULL_MACOS_BUILD)
 
 # Mojoal
@@ -192,15 +192,16 @@ if(MACOS AND NOT GOON_FULL_MACOS_BUILD)
     )
 else()
     # Use the names that are exported from building in subdirectories
-    target_link_libraries(supergoonSound
-        PUBLIC
-        vorbis vorbisenc vorbisfile ogg
-    )
+    # target_link_libraries(supergoonSound
+    #     PUBLIC
+    #     vorbis vorbisenc vorbisfile ogg
+    # )
 
     if(NOT EMSCRIPTEN)
         target_link_libraries(supergoonSound
             PUBLIC
             SDL2::SDL2-static
+            vorbis vorbisenc vorbisfile ogg
         )
     endif(NOT EMSCRIPTEN)
 endif(MACOS AND NOT GOON_FULL_MACOS_BUILD)
