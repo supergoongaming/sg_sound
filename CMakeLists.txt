@@ -220,6 +220,7 @@ target_include_directories(supergoonSound
     # Needed when building as library
     ${CMAKE_BINARY_DIR}/external/SDL/include
     ${CMAKE_CURRENT_SOURCE_DIR}/external/SDL/include
+    /usr/local/include
 )
 
 # #########################################
