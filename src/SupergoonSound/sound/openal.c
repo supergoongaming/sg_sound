@@ -344,6 +344,11 @@ static int PreBakeBuffers(StreamPlayer *player)
         return 0;
     }
     alSourceQueueBuffers(player->source, i, player->buffers);
+    if (alGetError() != AL_NO_ERROR)
+    {
+        fprintf(stderr, "Error queuing buffers for playback\n");
+        return 0;
+    }
     return 1;
 }
 
