@@ -57,7 +57,7 @@ endif(EMSCRIPTEN)
 # #########################################
 option(CMAKE_DEBUG_VARIABLES "Runs a debug on all variables for troubleshooting" ON)
 option(GOON_BUILD_PCH "Uses a PCH file to try and speed up compilation" ON)
-option(INSTALL_SG_SOUND "Installs SG sound" OFF)
+option(INSTALL_SG_SOUND "Installs SG sound" ON)
 
 # option(GOON_FULL_MACOS_BUILD "Full builds of all libraries, used for runners mostly, and passed in to override." OFF)
 
@@ -226,35 +226,62 @@ target_include_directories(supergoonSound
 # #########################################
 # Install
 # #########################################
+
 if(INSTALL_SG_SOUND)
     set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
     set(INSTALL_INC_DIR include CACHE PATH "Installation directory for headers")
-    install(TARGETS supergoonSound
-        EXPORT supergoonSoundTargets
-        ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-        LIBRARY DESTINATION ${INSTALL_LIB_DIR}
-        INCLUDES DESTINATION ${INSTALL_INC_DIR})
-    install(EXPORT supergoonSoundTargets
-        FILE supergoonSoundTargets.cmake
-        NAMESPACE supergoonSound::
-        DESTINATION lib/cmake/supergoonSound)
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/
-        DESTINATION ${INSTALL_INC_DIR}
-        FILES_MATCHING PATTERN "*.h*")
-    include(CMakePackageConfigHelpers)
-    write_basic_package_version_file(
-        ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
-        VERSION 0.1.0
-        COMPATIBILITY SameMajorVersion
-    )
-    configure_package_config_file(
-        ${CMAKE_CURRENT_LIST_DIR}/supergoonSoundConfig.cmake.in
-        ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
-        INSTALL_DESTINATION lib/cmake/supergoonSound
-    )
-    install(FILES
-        ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
-        DESTINATION lib/cmake/supergoonSound
-    )
+
+    # Check if the supergoonSound target already exists
+    if(TARGET supergoonSound)
+        # Get the existing include directories
+        get_target_property(existing_include_dirs supergoonSound INTERFACE_INCLUDE_DIRECTORIES)
+
+        # Remove problematic absolute paths
+        foreach(dir IN LISTS existing_include_dirs)
+            if(NOT IS_ABSOLUTE "${dir}")
+                list(APPEND cleaned_include_dirs "${dir}")
+            endif()
+        endforeach()
+
+        # Append the correct include directories
+        list(APPEND cleaned_include_dirs
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+            $<INSTALL_INTERFACE:${INSTALL_INC_DIR}>
+        )
+
+        # Update the target properties
+        set_target_properties(supergoonSound PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${cleaned_include_dirs}")
+
+        # Install commands
+        install(TARGETS supergoonSound
+            EXPORT supergoonSoundTargets
+            ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+            LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+            INCLUDES DESTINATION ${INSTALL_INC_DIR})
+        install(EXPORT supergoonSoundTargets
+            FILE supergoonSoundTargets.cmake
+            NAMESPACE supergoonSound::
+            DESTINATION lib/cmake/supergoonSound)
+        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/
+            DESTINATION ${INSTALL_INC_DIR}
+            FILES_MATCHING PATTERN "*.h*")
+        include(CMakePackageConfigHelpers)
+        write_basic_package_version_file(
+            ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
+            VERSION 0.1.0
+            COMPATIBILITY SameMajorVersion
+        )
+        configure_package_config_file(
+            ${CMAKE_CURRENT_LIST_DIR}/supergoonSoundConfig.cmake.in
+            ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
+            INSTALL_DESTINATION lib/cmake/supergoonSound
+        )
+        install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfig.cmake
+            ${CMAKE_CURRENT_BINARY_DIR}/supergoonSoundConfigVersion.cmake
+            DESTINATION lib/cmake/supergoonSound
+        )
+    else()
+        message(FATAL_ERROR "Target supergoonSound does not exist.")
+    endif()
 endif(INSTALL_SG_SOUND)
