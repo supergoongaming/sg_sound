@@ -26,7 +26,7 @@ int InitializeAl(void);
  */
 int PlayBgmAl(float volume);
 
-int PreBakeBgm(const char *filename, double *loop_begin, double *loop_end);
+int PreBakeBgm(const char *filename);
 int StopBgmAl(void);
 /**
  * @brief Pauses the playing bgm_player.

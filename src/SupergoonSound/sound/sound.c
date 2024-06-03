@@ -38,7 +38,7 @@ int gsPreLoadBgm(gsBgm *bgm)
         fprintf(stderr, "Trying to preload a invalid bgm\n");
         return false;
     }
-    PreBakeBgm(bgm->bgm_name, &bgm->loop_begin, &bgm->loop_end);
+    PreBakeBgm(bgm->bgm_name);
     return true;
 }
 

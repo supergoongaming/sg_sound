@@ -75,7 +75,7 @@ typedef enum BufferFillFlags {
  *
  * @return
  */
-static int PreBakeBgmAl(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end);
+static int PreBakeBgmAl(StreamPlayer *player, const char *filename);
 
 /**
  * @brief  The bgm player that we use, currently only one bgm player can exist.
@@ -122,7 +122,7 @@ static void DeletePlayer(StreamPlayer *player);
  *
  * @return
  */
-static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end);
+static int OpenPlayerFile(StreamPlayer *player, const char *filename);
 /**
  * @brief Gets the loop points for the song, based on the configuration file.
  *
@@ -303,8 +303,8 @@ int PlayBgmAl(float volume) {
 	music_ended = 0;
 	return 1;
 }
-int PreBakeBgm(const char *filename, double *loop_begin, double *loop_end) {
-	return PreBakeBgmAl(bgm_player, filename, loop_begin, loop_end);
+int PreBakeBgm(const char *filename) {
+	return PreBakeBgmAl(bgm_player, filename);
 }
 
 static void setLoopPoints(StreamPlayer *player, double* loopBegin, double* loopEnd) {
@@ -328,8 +328,8 @@ static void setLoopPoints(StreamPlayer *player, double* loopBegin, double* loopE
 	}
 }
 
-static int PreBakeBgmAl(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end) {
-	if (!OpenPlayerFile(bgm_player, filename, loop_begin, loop_end))
+static int PreBakeBgmAl(StreamPlayer *player, const char *filename) {
+	if (!OpenPlayerFile(bgm_player, filename))
 		return 0;
 	alSourceRewind(player->source);
 	alSourcei(player->source, AL_BUFFER, 0);
@@ -366,7 +366,7 @@ static int StartPlayer(StreamPlayer *player) {
 	return 1;
 }
 
-static int OpenPlayerFile(StreamPlayer *player, const char *filename, double *loop_begin, double *loop_end) {
+static int OpenPlayerFile(StreamPlayer *player, const char *filename) {
 	if (player->file_loaded)
 		ClosePlayerFile(player);
 	int result = ov_fopen(filename, &player->vbfile);
