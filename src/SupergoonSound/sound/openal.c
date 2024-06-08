@@ -13,6 +13,10 @@
  * Channels - how many speakers you are loading for, needs to load data for both.
  * Bytes - SampleSize * channels
  */
+
+#ifdef GN_PLATFORM_WINDOWS
+#define strncasecmp(x, y, z) _strnicmp(x, y, z)
+#endif
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <SupergoonSound/base/stack.h>
@@ -307,7 +311,7 @@ int PreBakeBgm(const char *filename) {
 	return PreBakeBgmAl(bgm_player, filename);
 }
 
-static void setLoopPoints(StreamPlayer *player, double* loopBegin, double* loopEnd) {
+static void setLoopPoints(StreamPlayer *player, double *loopBegin, double *loopEnd) {
 	// Retrieve the vorbis comments
 	vorbis_comment *vc = ov_comment(&player->vbfile, -1);
 	if (!vc) {
@@ -391,10 +395,9 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename) {
 }
 
 static void GetLoopPoints(StreamPlayer *player) {
-    double loop_begin = 0, loop_end = 0;
+	double loop_begin = 0, loop_end = 0;
 
-    setLoopPoints(player, &loop_begin, &loop_end);
-
+	setLoopPoints(player, &loop_begin, &loop_end);
 
 	if ((loop_begin) >= (loop_end)) {
 		(loop_end) = 0;
