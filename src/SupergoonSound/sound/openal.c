@@ -86,6 +86,10 @@ static int PreBakeBgmAl(StreamPlayer *player, const char *filename);
  */
 static StreamPlayer *bgm_player;
 /**
+ * @brief  The bgm player that we use, currently only one bgm player can exist.
+ */
+static StreamPlayer *background_bgm_player;
+/**
  * @brief The sfx player, currently only one sfx player can exist
  */
 static SfxPlayer *sfx_player;
@@ -244,6 +248,7 @@ int InitializeAl(void) {
 	if (InitAL() != 0)
 		return 0;
 	bgm_player = NewPlayer();
+	background_bgm_player = NewPlayer();
 	sfx_player = NewSfxPlayer();
 	return 1;
 }
@@ -307,8 +312,23 @@ int PlayBgmAl(float volume) {
 	music_ended = 0;
 	return 1;
 }
+
+int PlayBgmBackgroundAl(float volume) {
+	alSourcef(background_bgm_player->source, AL_GAIN, volume);
+	if (!StartPlayer(background_bgm_player)) {
+		ClosePlayerFile(background_bgm_player);
+		return 0;
+	}
+	music_ended = 0;
+	return 1;
+}
+
 int PreBakeBgm(const char *filename) {
 	return PreBakeBgmAl(bgm_player, filename);
+}
+
+int PreBakeBackgroundBgm(const char *filename) {
+	return PreBakeBgmAl(background_bgm_player, filename);
 }
 
 static void setLoopPoints(StreamPlayer *player, double *loopBegin, double *loopEnd) {
@@ -333,7 +353,7 @@ static void setLoopPoints(StreamPlayer *player, double *loopBegin, double *loopE
 }
 
 static int PreBakeBgmAl(StreamPlayer *player, const char *filename) {
-	if (!OpenPlayerFile(bgm_player, filename))
+	if (!OpenPlayerFile(player, filename))
 		return 0;
 	alSourceRewind(player->source);
 	alSourcei(player->source, AL_BUFFER, 0);
@@ -390,7 +410,7 @@ static int OpenPlayerFile(StreamPlayer *player, const char *filename) {
 		ov_clear(&player->vbfile);
 		return 0;
 	}
-	GetLoopPoints(bgm_player);
+	GetLoopPoints(player);
 	return 1;
 }
 
@@ -416,8 +436,11 @@ static void GetLoopPoints(StreamPlayer *player) {
 		player->loop_point_end = ov_pcm_total(&player->vbfile, -1) * player->vbinfo->channels * sizeof(short);
 }
 
-int StopBgmAl(void) {
+int StopBgmAl() {
 	return StopBgm(bgm_player);
+}
+int StopBackgroundBgmAl() {
+	return StopBgm(background_bgm_player);
 }
 
 static int StopBgm(StreamPlayer *player) {
@@ -524,6 +547,7 @@ static int PlaySfxFile(SfxPlayer *player, Sg_Loaded_Sfx *sfx_file, float volume)
 
 void UpdateAl(void) {
 	UpdatePlayer(bgm_player);
+	UpdatePlayer(background_bgm_player);
 	UpdateSfxPlayer(sfx_player);
 }
 
@@ -663,6 +687,7 @@ static int RestartStream(StreamPlayer *player) {
 
 int CloseAl(void) {
 	DeletePlayer(bgm_player);
+	DeletePlayer(background_bgm_player);
 	DeleteSfxPlayer(sfx_player);
 	bgm_player = NULL;
 	CloseAL();
@@ -697,4 +722,8 @@ static void DeleteSfxPlayer(SfxPlayer *sfx_player) {
 
 void SetPlayerLoops(int loops) {
 	bgm_player->loops = loops;
+}
+
+void SetBackgroundPlayerLoops(int loops) {
+	background_bgm_player->loops = loops;
 }

@@ -1,11 +1,10 @@
 #pragma once
 
-typedef struct Sg_Loaded_Sfx
-{
-    int size;
-    int format;
-    long sample_rate;
-    short *sound_data;
+typedef struct Sg_Loaded_Sfx {
+	int size;
+	int format;
+	long sample_rate;
+	short *sound_data;
 
 } Sg_Loaded_Sfx;
 
@@ -25,9 +24,12 @@ int InitializeAl(void);
  * @return 1 on Success, 0 on failure.
  */
 int PlayBgmAl(float volume);
+int PlayBgmBackgroundAl(float volume);
 
 int PreBakeBgm(const char *filename);
+int PreBakeBackgroundBgm(const char *filename);
 int StopBgmAl(void);
+int StopBackgroundBgmAl(void);
 /**
  * @brief Pauses the playing bgm_player.
  *
@@ -69,3 +71,4 @@ void UpdateAl(void);
 int CloseAl(void);
 
 void SetPlayerLoops(int loops);
+void SetBackgroundPlayerLoops(int loops);

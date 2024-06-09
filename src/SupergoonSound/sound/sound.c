@@ -23,12 +23,16 @@ gsBgm *gsLoadBgmWithLoopPoints(const char *filename_suffix, float loop_begin, fl
 	return bgm;
 }
 
-int gsPreLoadBgm(gsBgm *bgm) {
+int gsPreLoadBgm(gsBgm *bgm, int background) {
 	if (!bgm) {
 		fprintf(stderr, "Trying to preload a invalid bgm\n");
 		return false;
 	}
-	PreBakeBgm(bgm->bgm_name);
+	if (background) {
+		PreBakeBackgroundBgm(bgm->bgm_name);
+	} else {
+		PreBakeBgm(bgm->bgm_name);
+	}
 	return true;
 }
 
@@ -46,8 +50,16 @@ int gsPlayBgm(float volume) {
 	return PlayBgmAl(volume);
 }
 
+int gsPlayBackgroundBgm(float volume) {
+	return PlayBgmBackgroundAl(volume);
+}
+
 int gsStopBgm(void) {
 	return StopBgmAl();
+}
+
+int gsStopBackgroundBgm(void) {
+	return StopBackgroundBgmAl();
 }
 int gsPauseBgm(void) {
 	return PauseBgmAl();
