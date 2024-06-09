@@ -36,7 +36,7 @@ extern "C"
     gsBgm *gsLoadBgm(const char *filename);
     gsBgm *gsLoadBgmWithLoopPoints(const char *filename, float loop_begin, float loop_end);
     int gsPreLoadBgm(gsBgm *bgm);
-    gsSfx *gsLoadSfxHelper(const char *filename);
+    gsSfx *gsNewSfx(const char *filename);
     /**
      * @brief Load the Sound backend, this must be called before any other functions are available.
      *
