@@ -32,6 +32,7 @@ typedef struct gsSfx {
 
 gsBgm *gsLoadBgm(const char *filename);
 gsBgm *gsLoadBgmWithLoopPoints(const char *filename, float loop_begin, float loop_end);
+void gsUnloadBgm(gsBgm* bgm);
 int gsPreLoadBgm(gsBgm *bgm, int background);
 gsSfx *gsNewSfx(const char *filename);
 /**

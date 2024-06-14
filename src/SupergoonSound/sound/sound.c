@@ -16,6 +16,14 @@ gsBgm *gsLoadBgm(const char *filename_suffix) {
 	return bgm;
 }
 
+void gsUnloadBgm(gsBgm *bgm) {
+	if (!bgm) return;
+	free(bgm->bgm_name);
+	bgm->bgm_name = NULL;
+	free(bgm);
+	bgm = NULL;
+}
+
 gsBgm *gsLoadBgmWithLoopPoints(const char *filename_suffix, float loop_begin, float loop_end) {
 	gsBgm *bgm = gsLoadBgm(filename_suffix);
 	bgm->loop_begin = loop_begin;
