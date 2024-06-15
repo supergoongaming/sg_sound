@@ -575,8 +575,7 @@ static int UpdatePlayer(StreamPlayer *player) {
 	}
 
 	if (state != AL_PLAYING && state != AL_PAUSED && !music_ended) {
-		printf("We are not playing OR paused, we are %d\n", state);
-
+		// printf("We are not playing OR paused, we are %d\n", state);
 		alSourcePlay(player->source);
 		if (alGetError() != AL_NO_ERROR) {
 			fprintf(stderr, "Error restarting playback\n");
