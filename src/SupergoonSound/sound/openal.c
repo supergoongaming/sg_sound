@@ -436,10 +436,10 @@ static void GetLoopPoints(StreamPlayer *player) {
 		player->loop_point_end = ov_pcm_total(&player->vbfile, -1) * player->vbinfo->channels * sizeof(short);
 }
 
-int StopBgmAl() {
+int StopBgmAl(void) {
 	return StopBgm(bgm_player);
 }
-int StopBackgroundBgmAl() {
+int StopBackgroundBgmAl(void) {
 	return StopBgm(background_bgm_player);
 }
 
